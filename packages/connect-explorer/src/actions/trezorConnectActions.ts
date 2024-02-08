@@ -84,6 +84,8 @@ export const init =
         }
 
         const connectOptions = {
+            // Example with core mode enabled
+            useCoreInPopup: true,
             transportReconnect: true,
             popup: true,
             debug: true,
