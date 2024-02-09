@@ -262,6 +262,15 @@ export type PasswordEntry = {
     tags: number[];
 };
 
+export type PasswordEntryDecoded = {
+    title: string;
+    username: string;
+    password: string;
+    note: string;
+    safe_note: string;
+    tags: number[];
+};
+
 export type PasswordTag = { title: string; icon: string };
 
 export type PasswordManagerState = {

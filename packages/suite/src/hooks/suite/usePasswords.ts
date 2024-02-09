@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from 'src/hooks/suite';
 import * as metadataProviderActions from 'src/actions/suite/metadataProviderActions';
 import * as metadataPasswordsActions from 'src/actions/suite/metadataPasswordsActions';
 import { METADATA_PROVIDER, METADATA_PASSWORDS } from 'src/actions/suite/constants';
+import type { PasswordEntry, PasswordManagerState } from 'src/types/suite/metadata';
 import {
     selectPasswordManagerState,
     selectSelectedProviderForPasswords,
@@ -20,9 +21,10 @@ export const usePasswords = () => {
     const [providerConnecting, setProviderConnecting] = useState(false);
     const [fetchingPasswords, setFetchingPasswords] = useState(false);
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
+    const [encryptionKey, setEncryptionKey] = useState<string>('');
+
     const device = useSelector(selectDevice);
     const selectedProvider = useSelector(selectSelectedProviderForPasswords);
-
     const dispatch = useDispatch();
 
     const { entries, tags, extVersion } =
@@ -54,6 +56,7 @@ export const usePasswords = () => {
                     ),
                     'hex',
                 );
+                setEncryptionKey(encryptionKey);
 
                 const fileKey = res.payload.value.substring(0, res.payload.value.length / 2);
                 const fname = `${crypto
@@ -79,6 +82,7 @@ export const usePasswords = () => {
             })
             .finally(() => {
                 setProviderConnecting(false);
+                setFetchingPasswords(false);
             });
     };
 
@@ -92,6 +96,17 @@ export const usePasswords = () => {
             }),
         );
     };
+    const savePasswords = (nextId: number, passwordEntry: PasswordEntry) => {
+        console.log('save passwords 2', passwordEntry, fileName, encryptionKey);
+        dispatch(
+            metadataPasswordsActions.addPasswordMetadata(
+                nextId,
+                passwordEntry,
+                fileName,
+                encryptionKey,
+            ),
+        );
+    };
 
     const entriesByTag = Object.values(entries).filter(value =>
         value.tags.some(tag => selectedTags[tag]),
@@ -100,6 +115,10 @@ export const usePasswords = () => {
     const isSomeTagSelected = Object.values(selectedTags).some(v => v);
     const isAllTagSelected = selectedTags['0'];
 
+    console.log('entries', entries);
+    console.log('isSomeTagSelected', isSomeTagSelected);
+    console.log('isAllTagSelected', isAllTagSelected);
+    console.log('tags', tags);
     return {
         entries,
         entriesByTag,
@@ -116,5 +135,6 @@ export const usePasswords = () => {
         device,
         selectedProvider,
         providerConnecting,
+        savePasswords,
     };
 };

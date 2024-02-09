@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Button } from '@trezor/components';
 import { selectDevice } from '@suite-common/wallet-core';
@@ -8,6 +8,8 @@ import { useSelector, usePasswords } from 'src/hooks/suite';
 
 import { PasswordEntry as PasswordEntryComponent } from './PasswordEntry';
 import { Tag } from './Tag';
+import { EntryForm } from './EntryForm';
+import { AddEntryButton } from './AddEntryButton';
 
 const PasswordManagerBody = styled.div`
     display: flex;
@@ -45,8 +47,13 @@ export const PasswordManager = () => {
         disconnect,
         selectedProvider,
         providerConnecting,
+        savePasswords,
     } = usePasswords();
     const device = useSelector(selectDevice);
+
+    const [formActive, setFormActive] = useState<undefined | number>();
+
+    const nextId = Object.entries(entries).length + 1;
 
     if (providerConnecting) {
         return <SectionItem>Connecting...</SectionItem>;
@@ -109,6 +116,14 @@ export const PasswordManager = () => {
                                             {...entry}
                                             devicePath={device!.path}
                                             key={key}
+                                            index={Number(key)}
+                                            // todo: on edited
+                                            onEncrypted={entry => {
+                                                savePasswords(Number(key), entry);
+                                                setFormActive(undefined);
+                                            }}
+                                            formActive={formActive}
+                                            setFormActive={setFormActive}
                                         />
                                     ))}
                                     {!Object.entries(entries).length && (
@@ -116,10 +131,31 @@ export const PasswordManager = () => {
                                             description={`No passwords found in file ${fileName}`}
                                         />
                                     )}
+                                    {formActive === nextId && (
+                                        <EntryForm
+                                            onEncrypted={entry => {
+                                                savePasswords(nextId, entry);
+                                                setFormActive(undefined);
+                                            }}
+                                        />
+                                    )}
+
+                                    {!formActive && (
+                                        <AddEntryButton onClick={() => setFormActive(nextId)} />
+                                    )}
                                 </PasswordsList>
                             </PasswordManagerBody>
                         ) : (
-                            <div> no data</div>
+                            <div>
+                                <div> no data</div>
+                                <EntryForm
+                                    onEncrypted={entry => {
+                                        savePasswords(entry);
+                                        // todo: get last id, this is not bulletproof (deleting etc)
+                                        setFormActive(nextId);
+                                    }}
+                                />
+                            </div>
                         )}
                     </>
                 )}
