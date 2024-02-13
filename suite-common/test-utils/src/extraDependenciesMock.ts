@@ -67,7 +67,6 @@ export const extraDependenciesMock: ExtraDependencies = {
         selectIsPendingTransportEvent: mockSelector('selectIsPendingTransportEvent', false),
         selectDebugSettings: mockSelector('selectDebugSettings', {
             checkFirmwareAuthenticity: false,
-            coinjoinAllowNoTor: false,
             showDebugMenu: false,
             transports: [],
         }),
