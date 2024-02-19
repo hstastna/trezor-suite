@@ -7,7 +7,7 @@ import * as metadataUtils from 'src/utils/suite/metadata';
 import type { PasswordEntry as PasswordEntryType } from 'src/types/suite/metadata';
 import { PATH } from 'src/actions/suite/constants/metadataPasswordsConstants';
 import { getDisplayKey } from 'src/utils/suite/passwords';
-
+import { usePasswords } from 'src/hooks/suite';
 import { EntryForm } from './EntryForm';
 
 export const PasswordEntryRow = styled.div`
@@ -91,6 +91,8 @@ export const PasswordEntry = ({
             });
     };
 
+    const { removePassword } = usePasswords();
+
     return (
         <>
             <PasswordEntryRow>
@@ -108,7 +110,7 @@ export const PasswordEntry = ({
                         <Row>
                             <Button
                                 size="tiny"
-                                onClick={() => console.log('implement me')}
+                                onClick={() => removePassword(index)}
                                 type="button"
                                 variant="destructive"
                                 icon="CROSS"

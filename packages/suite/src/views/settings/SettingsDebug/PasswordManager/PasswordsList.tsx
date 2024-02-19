@@ -7,8 +7,7 @@ import {
     PasswordEntryRow,
 } from './PasswordEntry';
 import type { PasswordEntry as PasswordEntryType } from 'src/types/suite/metadata';
-
-import { EntryForm } from './EntryForm';
+// import { EntryForm } from './EntryForm';
 
 import { useSelector } from 'src/hooks/suite';
 import { TextColumn } from 'src/components/suite';
@@ -50,7 +49,6 @@ export const PasswordsList = ({
     nextId,
 }: PasswordsListProps) => {
     const device = useSelector(selectDevice);
-
     return (
         <Wrapper>
             <PasswordEntryRow>
@@ -82,7 +80,7 @@ export const PasswordsList = ({
             {!Object.entries(entries).length && (
                 <TextColumn description={`No passwords found in file ${fileName}`} />
             )}
-            {formActive === nextId && (
+            {/* {formActive === nextId && (
                 <EntryForm
                     cancel={() => setFormActive(undefined)}
                     onEncrypted={entry => {
@@ -90,7 +88,7 @@ export const PasswordsList = ({
                         setFormActive(undefined);
                     }}
                 />
-            )}
+            )} */}
 
             {!formActive && <AddEntryButton onClick={() => setFormActive(nextId)} />}
         </Wrapper>

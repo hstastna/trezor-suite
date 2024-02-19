@@ -125,3 +125,47 @@ export const addPasswordMetadata =
             return Promise.resolve({ success: false, error: 'trying to edit wrong object' });
         }
     };
+
+// todo: dry a bit
+export const removePasswordMetadata =
+    (index: number, fileName: string, aesKey: string) =>
+    (dispatch: Dispatch, getState: GetState) => {
+        // const device = selectDevice(getState());
+        const provider = selectSelectedProviderForPasswords(getState());
+        const providerInstance = dispatch(
+            metadataProviderActions.getProviderInstance({
+                clientId: METADATA_PROVIDER.DROPBOX_PASSWORDS_CLIENT_ID,
+                dataType: 'passwords',
+            }),
+        );
+
+        if (!providerInstance || !provider)
+            return Promise.resolve({
+                success: false,
+                error: 'provider missing',
+            });
+
+        const metadata = cloneObject(provider.data[fileName]);
+
+        if (metadata && 'extVersion' in metadata) {
+            console.log('metadata meow', metadata);
+            delete metadata.entries[index];
+
+            dispatch(
+                metadataActions.setMetadata({
+                    provider,
+                    fileName,
+                    data: metadata,
+                }),
+            );
+
+            metadataActions.encryptAndSaveMetadata({
+                providerInstance,
+                fileName,
+                data: metadata,
+                aesKey,
+            });
+        } else {
+            return Promise.resolve({ success: false, error: 'trying to edit wrong object' });
+        }
+    };
