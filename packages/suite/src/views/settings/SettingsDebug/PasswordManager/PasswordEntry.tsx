@@ -6,32 +6,24 @@ import { Button } from '@trezor/components';
 import * as metadataUtils from 'src/utils/suite/metadata';
 import type { PasswordEntry as PasswordEntryType } from 'src/types/suite/metadata';
 import { PATH } from 'src/actions/suite/constants/metadataPasswordsConstants';
+import { getDisplayKey } from 'src/utils/suite/passwords';
 
 import { EntryForm } from './EntryForm';
 
-const PasswordEntryRow = styled.div`
+export const PasswordEntryRow = styled.div`
     margin-bottom: 4px;
-`;
-
-const PasswordEntryBody = styled.div`
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
     margin-left: 8px;
 `;
 
-const PasswordEntryTitle = styled.div`
+export const PasswordEntryCol = styled.div`
     font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 `;
 
-const PasswordEntryUsername = styled.div`
-    font-size: 14px;
-`;
-
-const PasswordEntryPassword = styled.div`
-    font-size: 14px;
-`;
-
-const Decoded = styled.div`
+const Row = styled.div`
     display: flex;
     flex-direction: row;
     gap: 4px;
@@ -41,18 +33,15 @@ interface PasswordEntryProps extends PasswordEntryType {
     devicePath: string;
     onEncrypted: (entry: PasswordEntryType) => void;
     formActive: undefined | number;
-    setFormActive: (id: number) => void;
+    setFormActive: (id?: number) => void;
     index: number;
 }
-
-const getDisplayKey = (title: string, username: string) =>
-    // todo: implement this for the other category too: https://github.com/trezor/trezor-password-manager/blob/6266f685226bc5d5e0d8c7f08490b282f64ad1d1/source/background/classes/trezor_mgmt.js#L389-L390
-    `Unlock ${title} for user ${username}?`;
 
 export const PasswordEntry = ({
     username,
     title,
     nonce,
+    note,
     password,
     safe_note,
     devicePath,
@@ -80,9 +69,10 @@ export const PasswordEntry = ({
         })
             .then(result => {
                 if (result.success) {
+                    const decryptionKey = Buffer.from(result.payload.value, 'hex');
                     const decryptedPassword = metadataUtils.decrypt(
                         Buffer.from(password.data),
-                        Buffer.from(result.payload.value, 'hex'),
+                        decryptionKey,
                     );
 
                     setDecryptedPassword(decryptedPassword);
@@ -90,7 +80,7 @@ export const PasswordEntry = ({
                     if (safe_note) {
                         const decryptedSafeNote = metadataUtils.decrypt(
                             Buffer.from(safe_note.data),
-                            Buffer.from(result.payload.value, 'hex'),
+                            decryptionKey,
                         );
                         setDecryptedSafeNote(decryptedSafeNote);
                     }
@@ -104,34 +94,46 @@ export const PasswordEntry = ({
     return (
         <>
             <PasswordEntryRow>
-                <PasswordEntryBody>
-                    <PasswordEntryTitle>{title}</PasswordEntryTitle>
-                    <PasswordEntryUsername>{username}</PasswordEntryUsername>
-                    <PasswordEntryPassword>{decryptedSafeNote}</PasswordEntryPassword>
-                    <PasswordEntryPassword>
-                        {!decryptedPassword ? (
-                            <Button size="tiny" onClick={decrypt} type="button" variant="tertiary">
-                                {inProgress ? '....' : 'decode'}
+                <PasswordEntryCol>{note || title}</PasswordEntryCol>
+
+                <PasswordEntryCol>{username}</PasswordEntryCol>
+                <PasswordEntryCol>{decryptedSafeNote}</PasswordEntryCol>
+                <PasswordEntryCol>{decryptedPassword}</PasswordEntryCol>
+                <PasswordEntryCol>
+                    {!decryptedPassword ? (
+                        <Button size="tiny" onClick={decrypt} type="button" variant="tertiary">
+                            {inProgress ? '....' : 'decrypt'}
+                        </Button>
+                    ) : formActive === index ? (
+                        <Row>
+                            <Button
+                                size="tiny"
+                                onClick={() => console.log('implement me')}
+                                type="button"
+                                variant="destructive"
+                                icon="CROSS"
+                            >
+                                Remove
                             </Button>
-                        ) : (
-                            <Decoded>
-                                {decryptedPassword}
-                                <Button
-                                    size="tiny"
-                                    onClick={() => setFormActive(index)}
-                                    type="button"
-                                    variant="tertiary"
-                                    icon="PENCIL"
-                                >
-                                    Edit
-                                </Button>
-                            </Decoded>
-                        )}
-                    </PasswordEntryPassword>
-                </PasswordEntryBody>
+                        </Row>
+                    ) : (
+                        <Row>
+                            <Button
+                                size="tiny"
+                                onClick={() => setFormActive(index)}
+                                type="button"
+                                variant="tertiary"
+                                icon="PENCIL"
+                            >
+                                Edit
+                            </Button>
+                        </Row>
+                    )}
+                </PasswordEntryCol>
             </PasswordEntryRow>
             {formActive === index && (
                 <EntryForm
+                    cancel={() => setFormActive(undefined)}
                     onEncrypted={args => {
                         onEncrypted(args);
                         setDecryptedPassword('');

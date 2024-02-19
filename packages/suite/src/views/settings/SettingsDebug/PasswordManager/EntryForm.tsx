@@ -11,27 +11,25 @@ import { useSelector } from 'src/hooks/suite';
 import { selectDevice } from '@suite-common/wallet-core';
 import * as metadataUtils from 'src/utils/suite/metadata';
 import { PATH } from 'src/actions/suite/constants/metadataPasswordsConstants';
+import { getDisplayKey } from 'src/utils/suite/passwords';
 
 const FormWrapper = styled.div`
     display: flex;
     flex-direction: column;
     gap: 16px;
 `;
-// todo: duplicated
-const getDisplayKey = (title: string, username: string) =>
-    // todo: implement this for the other category too: https://github.com/trezor/trezor-password-manager/blob/6266f685226bc5d5e0d8c7f08490b282f64ad1d1/source/background/classes/trezor_mgmt.js#L389-L390
-    `Unlock ${title} for user ${username}?`;
 
 interface Props {
     onEncrypted: (entry: PasswordEntry) => void;
     entry?: PasswordEntryDecoded;
+    cancel: () => void;
 }
 
-export const EntryForm = ({ onEncrypted, entry }: Props) => {
+export const EntryForm = ({ onEncrypted, entry, cancel }: Props) => {
     const [title, setTitle] = useState<string>(entry?.title || '');
+    const [note, setNote] = useState<string>(entry?.note || '');
     const [username, setUsername] = useState<string>(entry?.username || '');
     const [password, setPassword] = useState<string>(entry?.password || '');
-    const [note, setNote] = useState<string>(entry?.note || '');
     const [secretNote, setSecretNote] = useState<string>(entry?.safe_note || '');
 
     const [inProgress, setInProgress] = useState(false);
@@ -64,7 +62,7 @@ export const EntryForm = ({ onEncrypted, entry }: Props) => {
                     Promise.resolve(result.payload.value),
                 ]);
             })
-            .then(([encryptedPassword, encryptedSecretNote, nonce2]) => {
+            .then(([encryptedPassword, encryptedSafeNote, nonce2]) => {
                 onEncrypted({
                     title,
                     username,
@@ -75,15 +73,15 @@ export const EntryForm = ({ onEncrypted, entry }: Props) => {
                     note,
                     safe_note: {
                         type: 'Buffer',
-                        data: encryptedSecretNote,
+                        data: encryptedSafeNote,
                     },
                     nonce: nonce2,
                     tags: [],
-                    // likely not needed
+                    // likely not needed, it seems to be the index of the entry
                     key_value: 'waht is this?',
-                    // likely not needed
+                    // likely not needed, this was probably bug in TPM (saving some local vars)
                     export: false,
-                    // likely not needed
+                    // likely not needed, this was probably bug in TPM (saving some local vars)
                     success: false,
                 });
             })
@@ -106,17 +104,18 @@ export const EntryForm = ({ onEncrypted, entry }: Props) => {
                 }}
             />
             <Input
-                placeholder="username"
-                value={username}
-                onChange={event => setUsername(event.target.value)}
-            />
-            <Input
                 placeholder="note"
                 value={note}
                 onChange={event => setNote(event.target.value)}
             />
             <Input
-                placeholder="secretNote"
+                placeholder="username"
+                value={username}
+                onChange={event => setUsername(event.target.value)}
+            />
+
+            <Input
+                placeholder="secret note"
                 value={secretNote}
                 onChange={event => setSecretNote(event.target.value)}
             />
@@ -125,7 +124,12 @@ export const EntryForm = ({ onEncrypted, entry }: Props) => {
                 value={password}
                 onChange={event => setPassword(event.target.value)}
             />
-            <Button onClick={encrypt}>Submit</Button>
+            <Button size="small" variant="tertiary" onClick={() => cancel()}>
+                Cancel
+            </Button>
+            <Button size="small" onClick={encrypt}>
+                Submit
+            </Button>
         </FormWrapper>
     );
 };

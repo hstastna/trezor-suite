@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Button } from '@trezor/components';
-import { selectDevice } from '@suite-common/wallet-core';
 
 import { SectionItem, TextColumn, ActionColumn } from 'src/components/suite';
-import { useSelector, usePasswords } from 'src/hooks/suite';
+import { usePasswords } from 'src/hooks/suite';
+import { getNextId } from 'src/utils/suite/passwords';
 
-import { PasswordEntry as PasswordEntryComponent } from './PasswordEntry';
 import { Tag } from './Tag';
 import { EntryForm } from './EntryForm';
-import { AddEntryButton } from './AddEntryButton';
+import { PasswordsList } from './PasswordsList';
 
 const PasswordManagerBody = styled.div`
     display: flex;
@@ -24,18 +23,12 @@ const TagsList = styled.div`
     gap: 4px;
 `;
 
-const PasswordsList = styled.div`
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    flex: 1;
-`;
-
 export const PasswordManager = () => {
     const {
         entries,
-        entriesByTag,
         tags,
+        entriesByTag,
+
         isSomeTagSelected,
         isAllTagSelected,
         extVersion,
@@ -49,11 +42,8 @@ export const PasswordManager = () => {
         providerConnecting,
         savePasswords,
     } = usePasswords();
-    const device = useSelector(selectDevice);
 
     const [formActive, setFormActive] = useState<undefined | number>();
-
-    const nextId = Object.entries(entries).length + 1;
 
     if (providerConnecting) {
         return <SectionItem>Connecting...</SectionItem>;
@@ -107,52 +97,26 @@ export const PasswordManager = () => {
                                         />
                                     ))}
                                 </TagsList>
-                                <PasswordsList>
-                                    {(isSomeTagSelected && !isAllTagSelected
-                                        ? Object.entries(entriesByTag)
-                                        : Object.entries(entries)
-                                    ).map(([key, entry]) => (
-                                        <PasswordEntryComponent
-                                            {...entry}
-                                            devicePath={device!.path}
-                                            key={key}
-                                            index={Number(key)}
-                                            // todo: on edited
-                                            onEncrypted={entry => {
-                                                savePasswords(Number(key), entry);
-                                                setFormActive(undefined);
-                                            }}
-                                            formActive={formActive}
-                                            setFormActive={setFormActive}
-                                        />
-                                    ))}
-                                    {!Object.entries(entries).length && (
-                                        <TextColumn
-                                            description={`No passwords found in file ${fileName}`}
-                                        />
-                                    )}
-                                    {formActive === nextId && (
-                                        <EntryForm
-                                            onEncrypted={entry => {
-                                                savePasswords(nextId, entry);
-                                                setFormActive(undefined);
-                                            }}
-                                        />
-                                    )}
-
-                                    {!formActive && (
-                                        <AddEntryButton onClick={() => setFormActive(nextId)} />
-                                    )}
-                                </PasswordsList>
+                                <PasswordsList
+                                    isSomeTagSelected={isSomeTagSelected}
+                                    isAllTagSelected={isAllTagSelected}
+                                    formActive={formActive}
+                                    entriesByTag={entriesByTag}
+                                    entries={entries}
+                                    savePasswords={savePasswords}
+                                    setFormActive={setFormActive}
+                                    fileName={fileName}
+                                    nextId={getNextId(entries)}
+                                />
                             </PasswordManagerBody>
                         ) : (
                             <div>
                                 <div> no data</div>
                                 <EntryForm
+                                    cancel={() => setFormActive(undefined)}
                                     onEncrypted={entry => {
-                                        savePasswords(entry);
-                                        // todo: get last id, this is not bulletproof (deleting etc)
-                                        setFormActive(nextId);
+                                        savePasswords(getNextId(entries), entry);
+                                        setFormActive(getNextId(entries));
                                     }}
                                 />
                             </div>
