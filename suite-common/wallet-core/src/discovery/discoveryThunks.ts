@@ -59,7 +59,10 @@ export const filterUnavailableNetworks = (
 const calculateProgress =
     (discovery: Discovery) =>
     (_dispatch: any, getState: any): PartialDiscovery => {
-        let total = LIMIT * discovery.networks.length;
+        let total =
+            LIMIT *
+            (discovery.networks.filter(s => s !== 'ada').length +
+                (discovery.availableCardanoDerivations?.length ?? 0));
         let loaded = 0;
         const accounts = selectAccounts(getState());
         const accountsByDeviceState = accounts.filter(a => a.deviceState === discovery.deviceState);
