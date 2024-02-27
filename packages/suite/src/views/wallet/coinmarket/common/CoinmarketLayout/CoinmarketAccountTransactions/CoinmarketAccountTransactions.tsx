@@ -87,17 +87,22 @@ export const CoinmarketAccountTransactions = () => {
             {sortedAccountTransactions.length > 0 && (
                 <>
                     <Header>
-                        <StyledH2>
-                            <Translation id="TR_BUY_ACCOUNT_TRANSACTIONS" />
-                            <TransactionCount>
-                                {buyTransactions.length} <Translation id="TR_TRADE_BUYS" /> •{' '}
-                                {sellTransactions.length} <Translation id="TR_TRADE_SELLS" /> •{' '}
-                                {exchangeTransactions.length}{' '}
-                                <Translation id="TR_TRADE_EXCHANGES" /> • {spendTransactions.length}{' '}
-                                <Translation id="TR_TRADE_SPENDS" /> • {savingsTransactions.length}{' '}
-                                <Translation id="TR_TRADE_SAVINGS" />
-                            </TransactionCount>
-                        </StyledH2>
+                        <div>
+                            <StyledH2>
+                                <Translation id="TR_BUY_ACCOUNT_TRANSACTIONS" />
+
+                            </StyledH2>
+                            <p>
+                                <TransactionCount>
+                                    {buyTransactions.length} <Translation id="TR_TRADE_BUYS" /> •{' '}
+                                    {sellTransactions.length} <Translation id="TR_TRADE_SELLS" /> •{' '}
+                                    {exchangeTransactions.length}{' '}
+                                    <Translation id="TR_TRADE_EXCHANGES" /> • {spendTransactions.length}{' '}
+                                    <Translation id="TR_TRADE_SPENDS" /> • {savingsTransactions.length}{' '}
+                                    <Translation id="TR_TRADE_SAVINGS" />
+                                </TransactionCount>
+                            </p>
+                        </div>
                     </Header>
                     <Content>
                         {sortedAccountTransactions.map(trade => {
