@@ -15,6 +15,7 @@ import { getDisplayKey } from 'src/utils/suite/passwords';
 
 const FormWrapper = styled.div`
     display: flex;
+    flex: 1;
     flex-direction: column;
     gap: 16px;
 `;

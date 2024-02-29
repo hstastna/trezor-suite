@@ -7,5 +7,6 @@ export const getDisplayKey = (title: string, username: string) => {
 };
 
 export const getNextId = (entries: Record<number, any>) => {
+    if (Object.keys(entries).length === 0) return 0;
     return Number(Object.keys(entries).sort((a, b) => parseInt(b, 10) - parseInt(a, 10))[0]) + 1;
 };

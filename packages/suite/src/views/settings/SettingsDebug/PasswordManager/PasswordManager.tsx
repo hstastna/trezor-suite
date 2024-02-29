@@ -28,7 +28,6 @@ export const PasswordManager = () => {
         entries,
         tags,
         entriesByTag,
-
         isSomeTagSelected,
         isAllTagSelected,
         extVersion,
@@ -110,15 +109,27 @@ export const PasswordManager = () => {
                                 />
                             </PasswordManagerBody>
                         ) : (
-                            <div>
-                                <div> no data</div>
-                                <EntryForm
-                                    cancel={() => setFormActive(undefined)}
-                                    onEncrypted={entry => {
-                                        savePasswords(getNextId(entries), entry);
-                                        setFormActive(getNextId(entries));
-                                    }}
-                                />
+                            <div style={{ display: 'flex', justifyContent: 'center', flex: 1 }}>
+                                {formActive !== 0 && (
+                                    <Button
+                                        size="tiny"
+                                        onClick={() => setFormActive(0)}
+                                        type="button"
+                                        variant="tertiary"
+                                        icon="PENCIL"
+                                    >
+                                        Add a password
+                                    </Button>
+                                )}
+                                {formActive === 0 && (
+                                    <EntryForm
+                                        cancel={() => setFormActive(undefined)}
+                                        onEncrypted={entry => {
+                                            savePasswords(getNextId(entries), entry);
+                                            setFormActive(getNextId(entries));
+                                        }}
+                                    />
+                                )}
                             </div>
                         )}
                     </>
