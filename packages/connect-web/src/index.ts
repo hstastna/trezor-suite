@@ -18,7 +18,7 @@ const selectMethodImpl =
     (
         ...args: Parameters<(typeof TrezorConnectCoreInPopup)[T]>
     ): ReturnType<(typeof TrezorConnectCoreInPopup)[T]> => {
-        console.log('TrezorConnect', method, args, useCoreInPopup);
+        console.log('TrezorConnect', useCoreInPopup ? 'core' : 'popup', method, args);
         const fn = useCoreInPopup ? TrezorConnectCoreInPopup[method] : TrezorConnectIframe[method];
 
         // @ts-expect-error problem for a future me
@@ -27,7 +27,6 @@ const selectMethodImpl =
 
 const TrezorConnect = factory({
     init: (settings: Partial<ConnectSettings> = {}) => {
-        console.log('TrezorConnect.init', settings);
         useCoreInPopup = settings?.useCoreInPopup === true;
 
         return selectMethodImpl('init')(settings);

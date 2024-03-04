@@ -59,6 +59,8 @@ const escapeHtml = (payload: any) => {
 };
 
 export const handleUIAffectingMessage = (message: CoreEventMessage) => {
+    // WIP debug
+    console.log('popup UI message', message.type, message.payload);
     switch (message.type) {
         case POPUP.METHOD_INFO:
             setState({
