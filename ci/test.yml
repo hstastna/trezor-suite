@@ -294,7 +294,7 @@ connect-popup manual:
 
 connect-popup legacy npm package manual:
   extends: .connect-popup legacy npm package base
-  dependencies:
+  needs:
     - install
     - connect-web build
   except:
@@ -303,7 +303,7 @@ connect-popup legacy npm package manual:
 
 connect-popup legacy npm package:
   extends: .connect-popup legacy npm package base
-  needs:
+  dependencies:
     - install
     - connect-web build
   only:
