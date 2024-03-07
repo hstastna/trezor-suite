@@ -48,6 +48,7 @@ const waitForReconnectedDevice = async ({
             manual,
             bootloader,
             confirmOnDevice,
+            i,
         }),
     );
     let reconnectedDevice: Device | undefined;
@@ -56,12 +57,10 @@ const waitForReconnectedDevice = async ({
         await createTimeoutPromise(2000);
         try {
             reconnectedDevice = deviceList.getDevice(deviceList.getFirstDevicePath());
-            // if (reconnectedDevice) {
-            //     registerEvents(reconnectedDevice, postMessage);
-            // }
-        } catch (err) {
-            console.log('catc herr', err);
-        }
+            if (reconnectedDevice) {
+                registerEvents(reconnectedDevice, postMessage);
+            }
+        } catch {}
         i++;
         log.debug('onCallFirmwareUpdate', 'waiting for device to reconnect', i);
     } while (!reconnectedDevice || bootloader === !reconnectedDevice.features?.bootloader_mode);
@@ -97,26 +96,34 @@ const waitForDisconnectedDevice = async ({
 };
 
 const getInstallationParams = (device: Device, _params: Params) => {
-    const support = {
-        reboot_and_wait: device.atLeast(['1.10.0', '2.6.0']),
-        // reboot_and_upgrade strictly requires updating to a higher version
-        // todo: this is not supported for model one right?
-        reboot_and_upgrade: device.atLeast('2.6.3') && !!device.firmwareRelease?.isNewer,
-        language_data_length: device.atLeast('2.6.5'),
-    };
+    if (!device.features.bootloader_mode) {
+        const support = {
+            reboot_and_wait: device.atLeast(['1.10.0', '2.6.0']),
+            // reboot_and_upgrade strictly requires updating to a higher version
+            // todo: this is not supported for model one right?
+            reboot_and_upgrade: device.atLeast('2.6.3') && !!device.firmwareRelease?.isNewer,
+            language_data_length: device.atLeast('2.6.5'),
+        };
 
-    const manual = !support.reboot_and_wait && !support.reboot_and_upgrade;
-    const upgrade = support.reboot_and_upgrade;
-    const language = support.language_data_length;
+        const manual = !support.reboot_and_wait && !support.reboot_and_upgrade;
+        const upgrade = support.reboot_and_upgrade;
+        const language = support.language_data_length;
 
-    return {
-        /** RebootToBootloader is not supported */
-        manual,
-        /** RebootToBootloader (REBOOT_AND_UPGRADE) is supported  */
-        upgrade,
-        /** Language update is supported */
-        language,
-    };
+        return {
+            /** RebootToBootloader is not supported */
+            manual,
+            /** RebootToBootloader (REBOOT_AND_UPGRADE) is supported  */
+            upgrade,
+            /** Language update is supported */
+            language,
+        };
+    } else {
+        return {
+            manual: false,
+            upgrade: false,
+            language: false,
+        };
+    }
 };
 
 const getFwHeader = (binary: ArrayBuffer) => Buffer.from(binary.slice(0, 6000)).toString('hex');
@@ -241,7 +248,12 @@ export const onCallFirmwareUpdate = async ({
     log.debug('onCallFirmwareUpdate with params: ', params);
 
     const device = await initDevice(params?.device?.path);
+
     let reconnectedDevice: Device = device;
+
+    if (deviceList.allDevices().length > 1) {
+        throw new Error('Firmware update allowed with only 1 device connected');
+    }
 
     log.debug('onCallFirmwareUpdate', 'device', device);
 
@@ -272,7 +284,7 @@ export const onCallFirmwareUpdate = async ({
 
     const deviceInitiallyConnectedInBootloader = device.features.bootloader_mode;
 
-    if (!manual && deviceInitiallyConnectedInBootloader) {
+    if (deviceInitiallyConnectedInBootloader) {
         log.warn(
             'onCallFirmwareUpdate',
             'device is already in bootloader mode. language will not be updated',
@@ -301,7 +313,7 @@ export const onCallFirmwareUpdate = async ({
                 language: targetLanguage,
                 baseUrl: params.baseUrl!,
                 version: device.firmwareRelease.release.version,
-                model_internal: device.features.internal_model,
+                internal_model: device.features.internal_model,
             });
 
             let rebootResponse = await device.getCommands().typedCall(
@@ -334,9 +346,8 @@ export const onCallFirmwareUpdate = async ({
         }
         await device.release();
 
-        // todo: link issue
+        // This delay is crucial see https://github.com/trezor/trezor-firmware/issues/1983
         if (device.features.major_version === 1) {
-            // This delay is crucial see https://github.com/trezor/trezor-firmware/issues/1983
             await createTimeoutPromise(2000);
         }
 
@@ -344,15 +355,13 @@ export const onCallFirmwareUpdate = async ({
             params: {
                 bootloader: true,
                 manual,
-                // todo: check if correct?
                 confirmOnDevice: false,
             },
             context: { deviceList, device, log, postMessage },
         });
     }
 
-    console.log('====deviceInitiallyConnectedInBootloader', deviceInitiallyConnectedInBootloader);
-    if (manual && !deviceInitiallyConnectedInBootloader) {
+    if (!deviceInitiallyConnectedInBootloader && manual) {
         await waitForDisconnectedDevice({
             params: { manual },
             context: { deviceList, device, postMessage, log },
@@ -432,7 +441,14 @@ export const onCallFirmwareUpdate = async ({
     });
 
     reconnectedDevice = await waitForReconnectedDevice({
-        params: { bootloader: false, manual, confirmOnDevice: false },
+        params: {
+            bootloader: false,
+            manual: reconnectedDevice.features.major_version === 1 ? true : false,
+            // note: when model 2 is initially connected in bootloader, we don't know if it has pin protection enabled and we can't set confirmOnDevice flag correctly
+            confirmOnDevice: !!(
+                device.features.pin_protection && device.features.major_version === 2
+            ),
+        },
         context: { deviceList, device: reconnectedDevice, log, postMessage },
     });
 
