@@ -39,6 +39,7 @@ import { dispose as disposeBackend } from '../backend/BlockchainLink';
 import { InteractionTimeout } from '../utils/interactionTimeout';
 import type { DeviceEvents, Device } from '../device/Device';
 import type { ConnectSettings, Device as DeviceTyped } from '../types';
+import { onCallFirmwareUpdate } from './onCallFirmwareUpdate';
 
 // Public variables
 let _core: Core; // Class with event emitter
@@ -187,12 +188,26 @@ const handleMessage = (message: CoreRequestMessage) => {
 
         // message from index
         case IFRAME.CALL:
-            onCall(message).catch(error => {
-                _log.error('onCall', error);
-            });
-            break;
-
-        // no default
+            if (message.payload.method === 'firmwareUpdate_v2') {
+                onCallFirmwareUpdate({
+                    // todo: names, !?
+                    params: message.payload,
+                    deviceList: _deviceList!,
+                    postMessage,
+                    initDevice,
+                    log: _log,
+                })
+                    .then(payload => {
+                        postMessage(createResponseMessage(message.id, true, payload));
+                    })
+                    .catch(error => {
+                        postMessage(createResponseMessage(message.id, false, { error }));
+                    });
+            } else {
+                onCall(message).catch(error => {
+                    _log.error('onCall', error);
+                });
+            }
     }
 };
 
@@ -202,7 +217,7 @@ const handleMessage = (message: CoreRequestMessage) => {
  * @returns {Promise<Device>}
  * @memberof Core
  */
-const initDevice = async (method: AbstractMethod<any>) => {
+const initDevice = async (devicePath?: string) => {
     if (!_deviceList) {
         throw ERRORS.TypedError('Transport_Missing');
     }
@@ -230,8 +245,8 @@ const initDevice = async (method: AbstractMethod<any>) => {
         });
     }
 
-    if (method.devicePath) {
-        device = _deviceList.getDevice(method.devicePath);
+    if (devicePath) {
+        device = _deviceList.getDevice(devicePath);
         showDeviceSelection =
             !device || !!device?.unreadableError || (device.isUnacquired() && !!isUsingPopup);
     } else {
@@ -400,7 +415,7 @@ const onCall = async (message: IFrameCallMessage) => {
     // find device
     let device: Device;
     try {
-        device = await initDevice(method);
+        device = await initDevice(method.devicePath);
     } catch (error) {
         if (error.code === 'Transport_Missing') {
             // wait for popup handshake
