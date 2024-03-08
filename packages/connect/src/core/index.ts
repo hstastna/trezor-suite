@@ -188,20 +188,26 @@ const handleMessage = (message: CoreRequestMessage) => {
 
         // message from index
         case IFRAME.CALL:
+            // firmwareUpdate is the only procedure that expects device disconnecting
+            // and reconnecting during the process. Due to this it can't be handled just
+            // like regular methods using onCall function. In onCall, disconnecting device
+            // means that call immediately returns error.
             if (message.payload.method === 'firmwareUpdate_v2') {
                 onCallFirmwareUpdate({
-                    // todo: names, !?
                     params: message.payload,
-                    deviceList: _deviceList!,
-                    postMessage,
-                    initDevice,
-                    log: _log,
+                    context: {
+                        deviceList: _deviceList!,
+                        postMessage,
+                        initDevice,
+                        log: _log,
+                    },
                 })
                     .then(payload => {
                         postMessage(createResponseMessage(message.id, true, payload));
                     })
                     .catch(error => {
                         postMessage(createResponseMessage(message.id, false, { error }));
+                        _log.error('ononCallFirmwareUpdate', error);
                     });
             } else {
                 onCall(message).catch(error => {

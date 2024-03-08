@@ -1,9 +1,9 @@
+import { randomBytes } from 'crypto';
+
 import { createTimeoutPromise } from '@trezor/utils';
 
 import { DeviceList } from '../device/DeviceList';
 import { UI, DEVICE, createUiMessage, createDeviceMessage, CoreEventMessage } from '../events';
-import type { Device } from '../device/Device';
-import { randomBytes } from 'crypto';
 import {
     getBinary,
     uploadFirmware,
@@ -12,10 +12,11 @@ import {
     shouldStripFwHeaders,
     stripFwHeaders,
 } from '../api/firmware';
-import { TypedError } from '../constants/errors';
 import { getReleases } from '../data/firmwareInfo';
-import { CommonParams, IntermediaryVersion } from '..';
+import { CommonParams, IntermediaryVersion } from '../types';
+import { PROTO, ERRORS } from '../constants';
 import type { Log } from '../utils/debug';
+import type { Device } from '../device/Device';
 
 type PostMessage = (message: CoreEventMessage) => void;
 
@@ -57,14 +58,14 @@ const waitForReconnectedDevice = async ({
         await createTimeoutPromise(2000);
         try {
             reconnectedDevice = deviceList.getDevice(deviceList.getFirstDevicePath());
-            if (reconnectedDevice) {
-                registerEvents(reconnectedDevice, postMessage);
-            }
         } catch {}
         i++;
         log.debug('onCallFirmwareUpdate', 'waiting for device to reconnect', i);
     } while (!reconnectedDevice || bootloader === !reconnectedDevice.features?.bootloader_mode);
 
+    if (reconnectedDevice) {
+        registerEvents(reconnectedDevice, postMessage);
+    }
     await reconnectedDevice.waitForFirstRun();
     await reconnectedDevice.acquire();
 
@@ -95,12 +96,12 @@ const waitForDisconnectedDevice = async ({
     });
 };
 
-const getInstallationParams = (device: Device, _params: Params) => {
+const getInstallationParams = (device: Device) => {
+    // we can detect support properly only if device was not connected in bootloader mode
     if (!device.features.bootloader_mode) {
         const support = {
             reboot_and_wait: device.atLeast(['1.10.0', '2.6.0']),
             // reboot_and_upgrade strictly requires updating to a higher version
-            // todo: this is not supported for model one right?
             reboot_and_upgrade: device.atLeast('2.6.3') && !!device.firmwareRelease?.isNewer,
             language_data_length: device.atLeast('2.6.5'),
         };
@@ -118,6 +119,9 @@ const getInstallationParams = (device: Device, _params: Params) => {
             language,
         };
     } else {
+        // if device connected initially in bootloader mode:
+        // manual: false - device is already in bootloader, so this field doesn't matter
+        // upgrade,language: false - we don't know if supported, so take the safest route and don't use these features
         return {
             manual: false,
             upgrade: false,
@@ -128,8 +132,6 @@ const getInstallationParams = (device: Device, _params: Params) => {
 
 const getFwHeader = (binary: ArrayBuffer) => Buffer.from(binary.slice(0, 6000)).toString('hex');
 
-// parametrized getBinary to save some lines of code
-
 const getBinaryHelper = (
     device: Device,
     params: Params,
@@ -138,14 +140,14 @@ const getBinaryHelper = (
     intermediaryVersion?: IntermediaryVersion,
 ) => {
     if (!device.firmwareRelease) {
-        throw TypedError('Runtime', 'device.firmwareRelease is not set');
+        throw ERRORS.TypedError('Runtime', 'device.firmwareRelease is not set');
     }
     const btcOnly = params.btcOnly || device.firmwareType === 'bitcoin-only';
 
     log.debug(
         'onCallFirmwareUpdate loading binary',
         'intermediaryVersion',
-        device.firmwareRelease.intermediaryVersion,
+        intermediaryVersion,
         'version',
         device.firmwareRelease.release.version,
         'btcOnly',
@@ -164,12 +166,9 @@ const getBinaryHelper = (
         // features and releases are used for sanity checking
         features: device.features,
         releases: getReleases(device.features?.internal_model),
-        // version argument is used to find and fetch concrete release from releases list,
-        // at the moment, version is not passed in params, so which version is going to be installed is solely
-        // decided by connect internals
+        baseUrl: params.baseUrl || 'https://data.trezor.io',
         version: device.firmwareRelease.release.version,
         btcOnly,
-        baseUrl: params.baseUrl!,
         intermediaryVersion,
     }).then(res => {
         postMessage(
@@ -207,7 +206,6 @@ const firmwareCheck = async (
         .getCommands()
         .typedCall('GetFirmwareHash', 'FirmwareHash', { challenge });
 
-    // needed? meh..
     postMessage(
         createUiMessage(UI.FIRMWARE_PROGRESS, {
             device: device.toMessageObject(),
@@ -234,36 +232,35 @@ export type Params = {
 
 export const onCallFirmwareUpdate = async ({
     params,
-    deviceList,
-    postMessage,
-    initDevice,
-    log,
+    context: { deviceList, postMessage, initDevice, log },
 }: {
     params: Params;
-    deviceList: DeviceList;
-    postMessage: PostMessage;
-    initDevice: (path?: string) => Promise<Device>;
-    log: Log;
+    context: {
+        deviceList: DeviceList;
+        postMessage: PostMessage;
+        initDevice: (path?: string) => Promise<Device>;
+        log: Log;
+    };
 }) => {
     log.debug('onCallFirmwareUpdate with params: ', params);
 
     const device = await initDevice(params?.device?.path);
-
-    let reconnectedDevice: Device = device;
+    if (!device.firmwareRelease) {
+        throw ERRORS.TypedError('Runtime', 'device.firmwareRelease is not set');
+    }
 
     if (deviceList.allDevices().length > 1) {
-        throw new Error('Firmware update allowed with only 1 device connected');
+        throw ERRORS.TypedError(
+            'Device_MultipleNotSupported',
+            'Firmware update allowed with only 1 device connected',
+        );
     }
 
     log.debug('onCallFirmwareUpdate', 'device', device);
 
     registerEvents(device, postMessage);
 
-    if (!device.firmwareRelease) {
-        throw TypedError('Runtime', 'device.firmwareRelease is not set');
-    }
-
-    const { manual, upgrade, language } = getInstallationParams(device, params);
+    const { manual, upgrade, language } = getInstallationParams(device);
 
     log.debug('onCallFirmwareUpdate', 'installation params', { manual, upgrade, language });
 
@@ -280,8 +277,6 @@ export const onCallFirmwareUpdate = async ({
     // Might not be installed, but needed for calculateFirmwareHash anyway
     const stripped = stripFwHeaders(binary);
 
-    log.debug('onCallFirmwareUpdate', 'binary loaded', binary);
-
     const deviceInitiallyConnectedInBootloader = device.features.bootloader_mode;
 
     if (deviceInitiallyConnectedInBootloader) {
@@ -290,14 +285,15 @@ export const onCallFirmwareUpdate = async ({
             'device is already in bootloader mode. language will not be updated',
         );
     }
-    if (
-        !manual &&
-        // todo: this is sort of product question, if device is already in bootloader mode, we can't call RebootToBootloader which means we can't update device
-        // language together with firmware update.
-        !deviceInitiallyConnectedInBootloader
-    ) {
+
+    let reconnectedDevice: Device = device;
+
+    if (!manual && !deviceInitiallyConnectedInBootloader) {
         const rebootParams = upgrade
-            ? { boot_command: 1, firmware_header: getFwHeader(binary) }
+            ? {
+                  boot_command: PROTO.BootCommand.INSTALL_UPGRADE,
+                  firmware_header: getFwHeader(binary),
+              }
             : {};
 
         await device.acquire();
