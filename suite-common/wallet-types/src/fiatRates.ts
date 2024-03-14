@@ -29,7 +29,8 @@ export type FiatRateKey = string & { __type: 'FiatRateKey' };
 
 export type Timestamp = number & { __type: 'Timestamp' };
 
-export type RateType = 'current' | 'lastWeek';
+export type RateType = 'current' | 'lastWeek' | 'historic';
+export type RateTypeWithoutHistoric = Exclude<RateType, 'historic'>;
 
 export type Rate = {
     rate?: number;
