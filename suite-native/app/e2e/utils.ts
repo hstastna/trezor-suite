@@ -1,7 +1,8 @@
 import { resolveConfig } from 'detox/internals';
 
 const LAUNCH_ARGS = {
-    detoxURLBlacklistRegex: '\\("^.*127.0.0.1:21325.*"\\)',
+    //Do not synchronize communication over the trezor bridge
+    detoxURLBlacklistRegex: '\\("^.*127.0.0.1.*"\\)',
 };
 
 const platform = device.getPlatform();
@@ -10,7 +11,8 @@ export const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 const getExpoDeepLinkUrl = () => {
     const expoLauncherUrl = encodeURIComponent(
-        `http://localhost:8081/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`,
+        `http://dp5mkti-petr.knetl-8081.exp.direct/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`,
+        // `http://localhost:8081/index.bundle?platform=${platform}&dev=true&minify=false&disableOnboarding=1`,
     );
 
     return `exp://expo-development-client/?url=${expoLauncherUrl}`;
@@ -18,6 +20,8 @@ const getExpoDeepLinkUrl = () => {
 
 const openExpoDevClientApp = async () => {
     const deepLinkUrl = getExpoDeepLinkUrl();
+
+    device.reverseTcpPort(21325);
 
     if (platform === 'ios') {
         await device.launchApp({

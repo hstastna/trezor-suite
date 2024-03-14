@@ -1,0 +1,45 @@
+version: "3"
+services:
+  trezor-user-env-unix:
+    container_name: trezor-user-env.unix
+    image: ghcr.io/trezor/trezor-user-env
+    healthcheck:
+      test: curl --fail 127.0.0.1:9002 || exit 1
+      interval: 10s
+      retries: 25
+      start_period: 20s
+      timeout: 10s
+    ports:
+      - "9001:9001"
+      - "9002:9002"
+      - "21326:21326"
+      - "127.0.0.1:21325:21326" # macos needs proxy to override the "origin" of the trezord request
+    environment:
+      - SDL_VIDEODRIVER=dummy
+      - XDG_RUNTIME_DIR=/var/tmp
+    volumes:
+      - ./../logs/screens:/trezor-user-env/logs/screens
+      - ./../src/binaries/firmware/bin/user_downloaded:/trezor-user-env/src/binaries/firmware/bin/user_downloaded
+
+  trezor-user-env-mac:
+    container_name: trezor-user-env.mac
+    image: ghcr.io/trezor/trezor-user-env
+    ports:
+      - "9001:9001"
+      - "9002:9002"
+      - "21326:21326"
+      - "127.0.0.1:21325:21326" # macos needs proxy to override the "origin" of the trezord request
+    environment:
+      - DISPLAY=docker.for.mac.host.internal:0
+      - REGTEST_RPC_URL=http://host.docker.internal:18021
+    volumes:
+      - ./../logs/screens:/trezor-user-env/logs/screens
+      - ./../src/binaries/firmware/bin/user_downloaded:/trezor-user-env/src/binaries/firmware/bin/user_downloaded
+
+  trezor-user-env-regtest:
+    container_name: trezor-user-env-regtest
+    image: ghcr.io/trezor/trezor-user-env-regtest
+    ports:
+      - "19021:19021" # internal blockbook port
+      - "19121:19121" # public blockbook port for website dashboard
+      - "18021:18021" # bitcoin-d rpc port
