@@ -49,21 +49,19 @@ export const FiatValue = ({
     className,
     symbol,
     tokenAddress,
-    fiatCurrency,
-    source,
-    useCustomSource,
+    historicRate,
+    useHistoricRate,
     showApproximationIndicator,
     disableHiddenPlaceholder,
     fiatAmountFormatterOptions,
     shouldConvert = true,
 }: FiatValueProps) => {
-    const { targetCurrency, fiatAmount, ratesSource, currentRate } = useFiatFromCryptoValue({
+    const { localCurrency, fiatAmount, rate, currentRate } = useFiatFromCryptoValue({
         amount,
         symbol,
         tokenAddress,
-        fiatCurrency,
-        source,
-        useCustomSource,
+        historicRate,
+        useHistoricRate,
     });
 
     const { FiatAmountFormatter } = useFormatters();
@@ -75,17 +73,17 @@ export const FiatValue = ({
             <WrapperComponent className={className}>
                 {showApproximationIndicator && <>≈ </>}
                 <FiatAmountFormatter
-                    currency={targetCurrency.toUpperCase()}
+                    currency={localCurrency.toUpperCase()}
                     value={value}
                     {...fiatAmountFormatterOptions}
                 />
             </WrapperComponent>
         );
 
-        const fiatRateValue = ratesSource?.[targetCurrency] ?? null;
+        const fiatRateValue = rate ?? null;
         const fiatRateComponent = fiatRateValue ? (
             <SameWidthNums>
-                <FiatAmountFormatter currency={targetCurrency} value={fiatRateValue} />
+                <FiatAmountFormatter currency={localCurrency} value={fiatRateValue} />
             </SameWidthNums>
         ) : null;
         if (!children) return fiatValueComponent;
@@ -93,7 +91,7 @@ export const FiatValue = ({
         return children({
             value: fiatValueComponent,
             rate: fiatRateComponent,
-            timestamp: useCustomSource ? null : currentRate?.lastTickerTimestamp ?? null,
+            timestamp: historicRate ? null : currentRate?.lastTickerTimestamp ?? null,
         });
     }
     if (!children) return null;

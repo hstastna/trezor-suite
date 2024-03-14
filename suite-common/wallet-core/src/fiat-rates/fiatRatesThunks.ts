@@ -44,7 +44,7 @@ export const updateTxsFiatRatesThunk = createThunk(
         const isElectrumBackend = selectIsElectrumBackendSelected(getState(), account.symbol);
 
         try {
-            const timestamps = txs.map(tx => tx.blockTime!);
+            const timestamps = txs.map(tx => tx.blockTime);
             const roundedTimestamps = roundTimestampsToNearestPastHour(timestamps as Timestamp[]);
             const uniqueTimestamps = [...new Set(roundedTimestamps)];
 
@@ -60,9 +60,9 @@ export const updateTxsFiatRatesThunk = createThunk(
                     fiatRatesActions.addFiatRatesForTimestamps({
                         ticker: { symbol: account.symbol },
                         localCurrency,
-                        rates: results.tickers.map(ticker => ({
+                        rates: results.tickers.map((ticker, index) => ({
                             rate: ticker?.rates[localCurrency],
-                            timestamp: ticker.ts,
+                            timestamp: uniqueTimestamps[index],
                         })),
                     }),
                 );
@@ -109,9 +109,9 @@ export const updateTxsFiatRatesThunk = createThunk(
                         fiatRatesActions.addFiatRatesForTimestamps({
                             ticker: { symbol: account.symbol, tokenAddress: token as TokenAddress },
                             localCurrency,
-                            rates: results.tickers.map(ticker => ({
+                            rates: results.tickers.map((ticker, index) => ({
                                 rate: ticker?.rates[localCurrency],
-                                timestamp: ticker.ts,
+                                timestamp: uniqueTimestamps[index],
                             })),
                         }),
                     );

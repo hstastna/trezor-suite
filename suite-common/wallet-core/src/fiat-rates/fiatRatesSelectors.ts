@@ -8,10 +8,17 @@ import {
     FiatRateKey,
     Rate,
     TickerId,
-    FiatRates,
     RateTypeWithoutHistoric,
+    Timestamp,
+    TokenAddress,
+    RatesByKey,
+    RatesByTimestamps,
 } from '@suite-common/wallet-types';
-import { getFiatRateKey, getFiatRateKeyFromTicker } from '@suite-common/wallet-utils';
+import {
+    getFiatRateKey,
+    getFiatRateKeyFromTicker,
+    roundTimestampToNearestPastHour,
+} from '@suite-common/wallet-utils';
 
 import {
     AccountsRootState,
@@ -24,16 +31,27 @@ import { FiatRatesRootState } from './fiatRatesTypes';
 
 type UnixTimestamp = number;
 
-export const selectFiatRates = (
-    state: FiatRatesRootState,
-    rateType: RateTypeWithoutHistoric = 'current',
-): FiatRates | undefined => state.wallet.fiat?.[rateType];
+export const selectCurrentFiatRates = (state: FiatRatesRootState): RatesByKey | undefined =>
+    state.wallet.fiat?.['current'];
+
+export const selectHistoricFiatRates = (state: FiatRatesRootState): RatesByTimestamps | undefined =>
+    state.wallet.fiat?.['historic'];
 
 export const selectFiatRatesByFiatRateKey = (
     state: FiatRatesRootState,
     fiatRateKey: FiatRateKey,
     rateType: RateTypeWithoutHistoric = 'current',
 ): Rate | undefined => state.wallet.fiat?.[rateType]?.[fiatRateKey];
+
+export const selectHistoricFiatRatesByTimestamp = (
+    state: FiatRatesRootState,
+    fiatRateKey: FiatRateKey,
+    timestamp: Timestamp,
+): number | undefined => {
+    const roundedTimestamp = roundTimestampToNearestPastHour(timestamp);
+
+    return state.wallet.fiat?.['historic']?.[fiatRateKey]?.[roundedTimestamp as Timestamp];
+};
 
 export const selectIsFiatRateLoading = (
     state: FiatRatesRootState,
@@ -118,12 +136,24 @@ export const selectTransactionsWithMissingRates = (
     localCurrency: FiatCurrencyCode,
 ) => {
     const accountTransactions = selectTransactions(state);
+    const historicFiatRates = selectHistoricFiatRates(state);
 
     return pipe(
         accountTransactions,
         D.mapWithKey((accountKey, txs) => ({
             account: selectAccountByKey(state, accountKey as AccountKey),
-            txs: txs.filter(tx => !tx.rates?.[localCurrency]),
+            txs: txs.filter(tx => {
+                const fiatRateKey = getFiatRateKey(
+                    tx.symbol,
+                    localCurrency as FiatCurrencyCode,
+                    tx.tokens[0]?.contract as TokenAddress,
+                );
+                const roundedTimestamp = roundTimestampToNearestPastHour(tx.blockTime as Timestamp);
+                const historicRate =
+                    historicFiatRates?.[fiatRateKey]?.[roundedTimestamp as Timestamp];
+
+                return !historicRate;
+            }),
         })),
         D.filter(({ account, txs }) => !!account && !!txs.length),
         D.values,

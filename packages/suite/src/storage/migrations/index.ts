@@ -755,6 +755,7 @@ export const migrate: OnUpgradeFunc<SuiteDBSchema> = async (
 
     if (oldVersion < 44) {
         await updateAll(transaction, 'txs', tx => {
+            // @ts-expect-error
             delete tx.tx.rates;
 
             return tx;
