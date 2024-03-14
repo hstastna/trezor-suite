@@ -77,7 +77,7 @@ export const checkFirmwareAuthenticity = createThunk(
     },
 );
 
-export const firmwareUpdate_v2 = createThunk(
+export const firmwareUpdate = createThunk(
     `${firmwareActionsPrefix}/firmwareUpdate_v2`,
     async (
         { firmwareType, binary }: { firmwareType?: FirmwareType; binary?: ArrayBuffer },
@@ -131,6 +131,7 @@ export const firmwareUpdate_v2 = createThunk(
             binary,
         });
 
+        console.log('firmwareUpdateReponse: ', firmwareUpdateReponse);
         if (!firmwareUpdateReponse.success) {
             dispatch(firmwareActions.setStatus('error'));
             dispatch(firmwareActions.setError(firmwareUpdateReponse.payload.error));
