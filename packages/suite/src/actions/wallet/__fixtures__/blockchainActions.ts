@@ -456,7 +456,7 @@ export const onConnect = [
     {
         description: 'successful, blockchainEstimateFee failed',
         initialState: {
-            accounts: [{ symbol: 'eth', history: {} }],
+            accounts: [{ symbol: 'eth', history: {}, deviceState: 'abc' }],
         },
         // order: subscribe > estimateFee
         connect: [undefined, { success: false }],
