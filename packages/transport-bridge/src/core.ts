@@ -102,10 +102,11 @@ export const createApi = (apiStr: 'usb' | 'udp') => {
         };
     };
 
-    const acquire = async (acquireInput: AcquireInput) => {
+    const acquire = async (acquireInput: AcquireInput, { instanceId }: { instanceId?: string }) => {
         const acquireIntentResult = await sessionsClient.acquireIntent({
             path: acquireInput.path,
             previous: acquireInput.previous === 'null' ? null : acquireInput.previous,
+            instanceId,
         });
         if (!acquireIntentResult.success) {
             return acquireIntentResult;

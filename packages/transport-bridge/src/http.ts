@@ -96,10 +96,15 @@ export class TrezordNode {
             ]);
 
             app.post('/acquire/:path/:previous', [
+                parseBodyJSON,
                 (req, res) => {
                     res.setHeader('Content-Type', 'text/plain');
                     this.api
-                        .acquire({ path: req.params.path, previous: req.params.previous })
+                        .acquire(
+                            { path: req.params.path, previous: req.params.previous },
+                            // @ts-expect-error
+                            { instanceId: req.body.instanceId },
+                        )
                         .then(result => {
                             if (!result.success) {
                                 return res.end(str({ error: result.error }));
