@@ -19,8 +19,9 @@ const Tag = styled.div`
 
 interface CoinmarketTagProps {
     tag?: string;
+    className?: string;
 }
 
-export const CoinmarketTag = ({ tag }: CoinmarketTagProps) => (
-    <TagRow>{tag && <Tag>{tag}</Tag>}</TagRow>
+export const CoinmarketTag = ({ tag, className }: CoinmarketTagProps) => (
+    <TagRow className={className}>{tag && <Tag>{tag}</Tag>}</TagRow>
 );

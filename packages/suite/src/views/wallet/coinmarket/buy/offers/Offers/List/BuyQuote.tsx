@@ -50,6 +50,12 @@ const StyledButton = styled(Button)`
     }
 `;
 
+const StyledCoinmarketTag = styled(CoinmarketTag)`
+    div {
+        margin-left: 0;
+    }
+`;
+
 const Value = styled.div`
     display: flex;
     align-items: center;
@@ -228,7 +234,7 @@ export const BuyQuote = ({ className, quote, wantCrypto }: QuoteProps) => {
                                         symbol={cryptoToCoinSymbol(quote.receiveCurrency!)}
                                     />
                                 )}
-                                <CoinmarketTag tag={tag} />
+                                <StyledCoinmarketTag tag={tag} />
                             </H3>
                         )}
                     </Value>
