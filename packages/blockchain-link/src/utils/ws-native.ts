@@ -46,7 +46,7 @@ class WSWrapper extends EventEmitter {
     }
 
     close() {
-        if (this.readyState === 1) {
+        if ([WSWrapper.CONNECTING, WSWrapper.OPEN].includes(this.readyState)) {
             this._ws.close();
         }
     }
