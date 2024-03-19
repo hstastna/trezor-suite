@@ -15,6 +15,8 @@ import { useCoinmarketExchangeOffersContext } from 'src/hooks/wallet/useCoinmark
 import useDebounce from 'react-use/lib/useDebounce';
 import BigNumber from 'bignumber.js';
 import { FieldError } from 'react-hook-form';
+import { BottomText } from '@trezor/components/src/components/form/BottomText';
+import { TranslationKey } from '@suite-common/intl-types';
 
 const Wrapper = styled.div`
     display: flex;
@@ -104,6 +106,10 @@ const SlippageSettingsButton = styled.button`
 `;
 
 const StyledInput = styled(Input)`
+    padding-bottom: 0 !important;
+    align-self: center;
+    margin-left: 10px;
+
     input {
         display: flex;
         flex: 1;
@@ -300,11 +306,15 @@ const SendSwapTransactionComponent = () => {
                                     name="CustomSlippage"
                                     data-test="CustomSlippage"
                                     onChange={changeCustomSlippage}
-                                    bottomText={customSlippageError?.message || null}
                                 />
                             </RightColumn>
                         )}
                     </PaddedColumns>
+                    {customSlippageError?.message ? (
+                        <BottomText inputState={customSlippageError && 'error'}>
+                            <Translation id={customSlippageError?.message as TranslationKey} />
+                        </BottomText>
+                    ) : null}
                 </SlippageSettingsRow>
             )}
             <Row>
