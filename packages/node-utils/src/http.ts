@@ -3,7 +3,7 @@ import * as net from 'net';
 import * as url from 'url';
 
 import type { RequiredKey } from '@trezor/type-utils';
-import { TypedEmitter } from '@trezor/utils';
+import { LogMessage, TypedEmitter } from '@trezor/utils';
 import { arrayPartition } from '@trezor/utils';
 
 import { getFreePort } from './getFreePort';
@@ -16,6 +16,7 @@ type Logger = {
     info: LogFn;
     warn: LogFn;
     error: LogFn;
+    getLog: () => LogMessage[];
 };
 
 type OriginalLogFn = (topic: string, message: string | string[]) => void;
@@ -23,6 +24,7 @@ type OriginalLogger = {
     info: OriginalLogFn;
     warn: OriginalLogFn;
     error: OriginalLogFn;
+    getLog?: () => LogMessage[];
 };
 
 type RequestWithParams = Request & {
@@ -65,7 +67,7 @@ type BaseEvents = {
 export class HttpServer<T extends EventMap> extends TypedEmitter<T & BaseEvents> {
     server: http.Server;
     private routes: Route[] = [];
-    private logger: Logger;
+    public logger: Logger;
     private readonly emitter: TypedEmitter<BaseEvents> = this;
     private port?: number;
     private sockets: Record<number, net.Socket> = {};
@@ -83,6 +85,7 @@ export class HttpServer<T extends EventMap> extends TypedEmitter<T & BaseEvents>
             info: (message: string | string[]) => logger.info(`${this.logName}`, message),
             warn: (message: string | string[]) => logger.warn(`${this.logName}`, message),
             error: (message: string | string[]) => logger.error(`${this.logName}`, message),
+            getLog: () => (logger.getLog ? logger.getLog() : []),
         };
         // this.logger = logger;
         this.server = http.createServer(this.onRequest);
