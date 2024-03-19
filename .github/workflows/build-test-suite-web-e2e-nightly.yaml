@@ -6,6 +6,8 @@ permissions:
 
 # runn all suite-web related tests every day at midnight
 on:
+    pull_request:
+        types: [labeled]
     workflow_dispatch:
     schedule:
         - cron: '0 0 * * *'
@@ -16,6 +18,7 @@ env:
 
 jobs:
     e2e-test-suite-web:
+        if: contains(github.event.pull_request.labels.*.name, 'aaa_run_nightly')
         runs-on: ubuntu-latest
         strategy:
             fail-fast: false
