@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import styled from 'styled-components';
-import { TSchema } from '@sinclair/typebox';
+import { Type, TSchema } from '@sinclair/typebox';
 
 import { Card, CollapsibleBox, SelectBar, variables } from '@trezor/components';
 
@@ -38,7 +38,7 @@ interface ApiPlaygroundProps {
     options: (
         | {
               title: string;
-              schema: TSchema;
+              schema?: TSchema;
               method: string;
           }
         | {
@@ -59,7 +59,7 @@ export const ApiPlayground = ({ options }: ApiPlaygroundProps) => {
             actions.onSetMethod(option.legacyConfig);
         } else {
             const { method, schema } = option;
-            actions.onSetSchema(method, schema);
+            actions.onSetSchema(method, schema ?? Type.Object({}));
         }
     }, [actions, options, selectedOption]);
 

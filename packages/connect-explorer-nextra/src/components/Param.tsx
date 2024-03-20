@@ -72,7 +72,7 @@ export const Param = (props: ParamProps) => {
                 {props.required === true && <Badge variant="primary">Required</Badge>}
                 {props.required === false && <Badge variant="tertiary">Optional</Badge>}
             </ParamRow>
-            {props.description && (
+            {props.description && props.type !== 'Undefined' && (
                 <ParamDescription>
                     <Markdown>{props.description}</Markdown>
                 </ParamDescription>
