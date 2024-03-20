@@ -1,13 +1,42 @@
 import styled from 'styled-components';
-import { Tooltip as TooltipComponent, TooltipProps } from '../../index';
+import { Tooltip as TooltipComponent, TooltipInteraction, TooltipProps } from './Tooltip';
 import { Meta, StoryObj } from '@storybook/react';
+import { Placement } from '@floating-ui/react';
+import { Elevation, mapElevationToBackground, spacingsPx, zIndices } from '@trezor/theme';
+import { ElevationContext, useElevation } from '../ElevationContext/ElevationContext';
 
 const Center = styled.div`
     display: flex;
+    flex-direction: column;
+    gap: ${spacingsPx.xxl};
     justify-content: center;
     width: 100%;
     padding: 100px 0;
 `;
+
+const HigherZ = styled.div<{ $elevation: Elevation }>`
+    display: flex;
+    flex-direction: column;
+    height: 100px;
+    justify-content: center;
+    background-color: ${mapElevationToBackground};
+
+    // Simulate "Modal"
+    z-index: ${zIndices.modal};
+    position: relative;
+`;
+
+const ModalMock = (args: TooltipProps) => {
+    const { elevation } = useElevation();
+
+    return (
+        <HigherZ $elevation={elevation}>
+            <TooltipComponent {...args}>
+                <span>Text with tooltip in Modal</span>
+            </TooltipComponent>
+        </HigherZ>
+    );
+};
 
 const Addon = styled.span`
     background: blue;
@@ -28,13 +57,21 @@ export const Tooltip: StoryObj<TooltipProps> = {
             <TooltipComponent {...args}>
                 <span>Text with tooltip</span>
             </TooltipComponent>
+            <ElevationContext baseElevation={0}>
+                <ModalMock {...args} />
+            </ElevationContext>
         </Center>
     ),
     args: {
         content: 'Passphrase is an optional feature',
         offset: 10,
+        initialOpen: false,
+        interaction: 'hover',
     },
     argTypes: {
+        initialOpen: {
+            type: 'boolean',
+        },
         maxWidth: {
             type: 'number',
         },
@@ -51,7 +88,7 @@ export const Tooltip: StoryObj<TooltipProps> = {
         },
         placement: {
             control: 'radio',
-            options: ['top', 'bottom', 'left', 'right'],
+            options: ['top', 'right', 'bottom', 'left'] as Placement[],
         },
         cursor: {
             options: ['pointer', 'help', 'not-allowed', 'default'],
@@ -66,6 +103,10 @@ export const Tooltip: StoryObj<TooltipProps> = {
                     addon: 'Addon',
                 },
             },
+        },
+        interaction: {
+            control: 'radio',
+            options: ['hover', 'none'] as TooltipInteraction[],
         },
     },
 };

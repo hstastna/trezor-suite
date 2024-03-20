@@ -1,12 +1,12 @@
 import styled from 'styled-components';
-import { useRef, useState, ReactElement, isValidElement } from 'react';
+import { useState, ReactElement, ReactNode, useEffect, HtmlHTMLAttributes } from 'react';
 import { motion } from 'framer-motion';
-import Tippy, { TippyProps } from '@tippyjs/react/headless';
-import { Instance } from 'tippy.js';
 import { transparentize } from 'polished';
 import { borders, palette, spacings, spacingsPx, typography, zIndices } from '@trezor/theme';
 
 import { Icon, IconType } from '../assets/Icon/Icon';
+import { TooltipContent, TooltipFloatingUi, TooltipTrigger } from './TooltipFloatingUi';
+import { FloatingDelayGroup, Placement } from '@floating-ui/react';
 
 export const TOOLTIP_DELAY_NONE = 0;
 export const TOOLTIP_DELAY_SHORT = 200;
@@ -31,11 +31,13 @@ const Wrapper = styled.div<{ $isFullWidth: boolean }>`
     width: ${({ $isFullWidth }) => ($isFullWidth ? '100%' : 'auto')};
 `;
 
-const TooltipContainer = styled(motion.div)<{
+type TooltipContainerProps = {
     $maxWidth: string | number;
     $isLarge: boolean;
     $isWithHeader: boolean;
-}>`
+};
+
+const TooltipContainerStyled = styled(motion.div)<TooltipContainerProps>`
     background: ${palette.darkGray300};
     color: ${palette.lightWhiteAlpha1000};
     border-radius: ${borders.radii.sm};
@@ -80,50 +82,87 @@ const Content = styled.div<{ $dashed: boolean; $cursor: Cursor }>`
     }
 `;
 
-const animationStartOffset = 10;
-const getTranslateStyle = (placement: TippyProps['placement']) => {
-    switch (placement) {
-        case 'top':
-            return `translate(0px, ${animationStartOffset}px)`;
-        case 'bottom':
-            return `translate(0px, -${animationStartOffset}px)`;
-        case 'left':
-            return `translate(${animationStartOffset}px, 0px)`;
-        case 'right':
-            return `translate(-${animationStartOffset}px, 0px)`;
-        default:
-            return '';
-    }
-};
 export type TooltipDelay =
     | typeof TOOLTIP_DELAY_NONE
     | typeof TOOLTIP_DELAY_SHORT
     | typeof TOOLTIP_DELAY_NORMAL
     | typeof TOOLTIP_DELAY_LONG;
 
-export type TooltipProps = Omit<TippyProps, 'offset' | 'delay'> & {
-    delayShow?: TooltipDelay;
-    delayHide?: TooltipDelay;
+type TooltipComponentProps = {
+    content: ReactNode;
+    maxWidth?: string | number;
     /**
      *  @description Legacy prop
      */
     isLarge?: boolean;
+    addon?: ReactNode;
+    headerIcon?: IconType;
+    title?: ReactElement;
+};
+
+type TooltipComponentExtendedProps = TooltipComponentProps &
+    Required<Pick<TooltipComponentProps, 'maxWidth' | 'isLarge'>> & { isOpen: boolean };
+
+const TooltipContainer = ({
+    isOpen,
+    addon,
+    maxWidth,
+    isLarge,
+    content,
+    headerIcon,
+    title,
+}: TooltipComponentExtendedProps) => (
+    <TooltipContainerStyled
+        $isLarge={isLarge}
+        $isWithHeader={!!(title || addon)}
+        $maxWidth={maxWidth}
+        tabIndex={-1}
+        animate={isOpen ? 'shown' : 'hidden'}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
+    >
+        {(title || addon) && (
+            <HeaderContainer>
+                {title && (
+                    <TooltipTitle $isLarge={isLarge}>
+                        {headerIcon && <Icon icon={headerIcon} size={spacings.md} />}
+                        {title}
+                    </TooltipTitle>
+                )}
+
+                {addon && <Addon>{addon}</Addon>}
+            </HeaderContainer>
+        )}
+
+        <div>{content}</div>
+    </TooltipContainerStyled>
+);
+
+export type TooltipInteraction = 'none' | 'hover';
+
+export type TooltipProps = {
+    children: ReactNode;
+    placement?: Placement;
+    className?: string;
+    disabled?: boolean;
+    onShow?: () => void;
+    onHide?: () => void;
+    initialOpen?: boolean;
+    delayShow?: TooltipDelay;
+    delayHide?: TooltipDelay;
     dashed?: boolean;
     offset?: number;
     cursor?: Cursor;
-    addon?: (instance: Instance) => ReactElement | ReactElement;
-    title?: ReactElement;
-    headerIcon?: IconType;
     isFullWidth?: boolean;
-};
+    interaction?: TooltipInteraction;
+} & TooltipComponentProps;
+
+type InteractionProps = Pick<HtmlHTMLAttributes<HTMLDivElement>, 'onMouseEnter' | 'onMouseLeave'>;
 
 export const Tooltip = ({
     placement = 'top',
-    interactive = true,
     children,
     isLarge = false,
     dashed = false,
-    duration = 150,
     delayShow = TOOLTIP_DELAY_SHORT,
     delayHide = TOOLTIP_DELAY_SHORT,
     maxWidth = 400,
@@ -138,91 +177,63 @@ export const Tooltip = ({
     onHide,
     className,
     isFullWidth = false,
-    ...rest
+    initialOpen = false,
+    interaction = 'hover',
 }: TooltipProps) => {
-    const [isShown, setIsShown] = useState(false);
+    const [isOpen, setIsOpen] = useState(true);
 
-    const tooltipRef = useRef<Element>(null);
-
-    // set data-test attribute to Tippy https://github.com/atomiks/tippyjs-react/issues/89
-    const onCreate = (instance: Instance) => {
-        const content = instance.popper;
-        content.setAttribute('data-test', '@tooltip');
-    };
-
-    const animationVariants = {
-        shown: { opacity: 1, transform: 'translate(0px, 0px)' },
-        hidden: { opacity: 0, transform: `${getTranslateStyle(placement)}` },
-    };
-
-    const handleOnShow = (instance: Instance) => {
-        onShow?.(instance);
-        setIsShown(true);
-    };
-
-    const handleOnHide = (instance: Instance) => {
-        onHide?.(instance);
-        setIsShown(false);
-    };
+    useEffect(() => {
+        setIsOpen(initialOpen);
+    }, [initialOpen]);
 
     if (!content || !children) {
         return <>{children}</>;
     }
 
+    const interactionProps: InteractionProps =
+        interaction === 'hover'
+            ? {
+                  onMouseEnter: () => setIsOpen(true),
+                  onMouseLeave: () => setIsOpen(false),
+              }
+            : {};
+
     return (
         <Wrapper $isFullWidth={isFullWidth} className={className}>
-            <Tippy
-                zIndex={zIndices.tooltip}
-                placement={placement}
-                animation
-                onShow={handleOnShow}
-                onHide={handleOnHide}
-                duration={duration}
-                delay={[delayShow, delayHide]}
-                offset={[0, offset]}
-                interactive={interactive}
-                appendTo={() => document.body}
-                onCreate={onCreate}
-                ref={tooltipRef}
-                disabled={disabled}
-                {...rest}
-                render={(attrs, _content, instance) => (
-                    <TooltipContainer
-                        $isLarge={isLarge}
-                        $isWithHeader={!!(title || addon)}
-                        $maxWidth={maxWidth}
-                        tabIndex={-1}
-                        variants={animationVariants}
-                        animate={isShown ? 'shown' : 'hidden'}
-                        transition={{ duration: 0.2, ease: 'easeInOut' }}
-                        onAnimationComplete={isShown ? () => {} : instance?.unmount}
-                        {...attrs}
-                    >
-                        {(title || addon) && (
-                            <HeaderContainer>
-                                {title && (
-                                    <TooltipTitle $isLarge={isLarge}>
-                                        {headerIcon && (
-                                            <Icon icon={headerIcon} size={spacings.md} />
-                                        )}
-                                        {title}
-                                    </TooltipTitle>
-                                )}
+            <FloatingDelayGroup delay={{ open: delayShow, close: delayHide }}>
+                <TooltipFloatingUi
+                    placement={placement}
+                    open={isOpen}
+                    onOpenChange={open => {
+                        setIsOpen(open);
 
-                                {addon && instance && (
-                                    <Addon>{isValidElement(addon) ? addon : addon(instance)}</Addon>
-                                )}
-                            </HeaderContainer>
-                        )}
+                        if (open) {
+                            onShow?.();
+                        } else {
+                            onHide?.();
+                        }
+                    }}
+                    offset={offset}
+                >
+                    <TooltipTrigger asChild {...interactionProps}>
+                        <Content $dashed={dashed} $cursor={disabled ? 'default' : cursor}>
+                            {children}
+                        </Content>
+                    </TooltipTrigger>
 
-                        <div>{content}</div>
-                    </TooltipContainer>
-                )}
-            >
-                <Content $dashed={dashed} $cursor={disabled ? 'default' : cursor}>
-                    {children}
-                </Content>
-            </Tippy>
+                    <TooltipContent data-test="@tooltip" style={{ zIndex: zIndices.tooltip }}>
+                        <TooltipContainer
+                            content={content}
+                            isOpen={isOpen}
+                            addon={addon}
+                            headerIcon={headerIcon}
+                            isLarge={isLarge}
+                            maxWidth={maxWidth}
+                            title={title}
+                        />
+                    </TooltipContent>
+                </TooltipFloatingUi>
+            </FloatingDelayGroup>
         </Wrapper>
     );
 };
