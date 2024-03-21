@@ -224,6 +224,7 @@ export class Device extends TypedEmitter<DeviceEvents> {
             if (this.commands) {
                 this.commands.dispose();
                 if (this.commands.callPromise) {
+                    console.log('device.relase -> await  commands.callPromise.promise');
                     await this.commands.callPromise.promise;
                 }
             }
@@ -233,6 +234,7 @@ export class Device extends TypedEmitter<DeviceEvents> {
                 path: this.originalDescriptor.path,
             });
 
+            console.log('device.relase -> await this.releasePromise.promise');
             const releaseResponse = await this.releasePromise.promise;
             this.releasePromise = undefined;
             if (releaseResponse.success) {
@@ -240,6 +242,7 @@ export class Device extends TypedEmitter<DeviceEvents> {
                 this.originalDescriptor.session = null;
             }
         }
+        console.log('device.release done');
     }
 
     async cleanup() {
@@ -270,7 +273,9 @@ export class Device extends TypedEmitter<DeviceEvents> {
         const runPromise = createDeferred();
         this.runPromise = runPromise;
 
+        console.log('run -> _runInner');
         this._runInner(fn, options).catch(err => {
+            console.log('run -> _runInner catch err', err);
             runPromise.reject(err);
         });
 
@@ -337,17 +342,20 @@ export class Device extends TypedEmitter<DeviceEvents> {
 
         if (!this.isUsedHere() || this.commands?.disposed || !this.getExternalState()) {
             // acquire session
+            console.log('_runInner, acquire');
             await this.acquire();
 
             // update features
             try {
                 if (fn) {
+                    console.log('_runInner, initialize (branch 1)');
                     await this.initialize(
                         !!options.useEmptyPassphrase,
                         !!options.useCardanoDerivation,
                     );
                 } else {
                     // do not initialize while firstRunPromise otherwise `features.session_id` could be affected
+                    console.log('_runInner, getFeatures (branch 2)');
                     await Promise.race([
                         this.getFeatures(),
                         // Edge-case: T1B1 + bootloader < 1.4.0 doesn't know the "GetFeatures" message yet and it will send no response to it
@@ -363,11 +371,13 @@ export class Device extends TypedEmitter<DeviceEvents> {
                     ]);
                 }
             } catch (error) {
+                console.log('_runInner catch', error);
                 if (!this.inconsistent && error.message === 'GetFeatures timeout') {
                     // handling corner-case T1B1 + bootloader < 1.4.0 (above)
                     // if GetFeatures fails try again
                     // this time add empty "fn" param to force Initialize message
                     this.inconsistent = true;
+                    console.log('inconsistent branch meow');
 
                     return this._runInner(() => Promise.resolve({}), options);
                 }
@@ -398,6 +408,10 @@ export class Device extends TypedEmitter<DeviceEvents> {
 
         // if we were waiting for device to be acquired, it should be guaranteed here that it had already happened
         // (features are reloaded too)
+        console.log(
+            'this.listeners(DEVICE.ACQUIRED).length',
+            this.listeners(DEVICE.ACQUIRED).length,
+        );
         if (this.listeners(DEVICE.ACQUIRED).length > 0) {
             this.emit(DEVICE.ACQUIRED);
         }
@@ -539,6 +553,7 @@ export class Device extends TypedEmitter<DeviceEvents> {
         }
 
         const { message } = await this.getCommands().typedCall('Initialize', 'Features', payload);
+        console.log('initialize response, ', message);
         this._updateFeatures(message);
     }
 

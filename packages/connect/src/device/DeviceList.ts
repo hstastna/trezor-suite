@@ -467,6 +467,8 @@ export class DeviceList extends TypedEmitter<DeviceListEvents> {
         } catch (error) {
             _log.debug('Cannot create device', error);
 
+            console.log('error code', error.code);
+            console.log('error.message', error.message);
             if (
                 error.code === 'Device_NotFound' ||
                 error.message === TRANSPORT_ERROR.DEVICE_NOT_FOUND ||
