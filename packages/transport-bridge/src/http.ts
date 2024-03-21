@@ -1,3 +1,4 @@
+import languageHeaderParser from 'accept-language-parser';
 
 import {
     HttpServer,
@@ -227,11 +228,15 @@ export class TrezordNode {
 
             app.get('/status', [
                 async (req, res) => {
+                    const language =
+                        languageHeaderParser.parse(req.headers['accept-language'])[0]?.code || 'en';
+
                     const enumerateResult = await this.api.enumerate();
                     const props = {
                         intro: `To download full logs go to http://127.0.0.1:${this.port}/logs`,
                         version: this.version,
                         devices: enumerateResult.success ? enumerateResult.payload.descriptors : [],
+                        language,
                         logs: app.logger.getLog().slice(-20),
                     };
 
