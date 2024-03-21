@@ -4,6 +4,8 @@ import { Meta, StoryObj } from '@storybook/react';
 import { Placement } from '@floating-ui/react';
 import { Elevation, mapElevationToBackground, spacingsPx, zIndices } from '@trezor/theme';
 import { ElevationContext, useElevation } from '../ElevationContext/ElevationContext';
+import { Button } from '../..';
+import { useState } from 'react';
 
 const Center = styled.div`
     display: flex;
@@ -51,8 +53,10 @@ const meta: Meta = {
 } as Meta;
 export default meta;
 
-export const Tooltip: StoryObj<TooltipProps> = {
-    render: args => (
+export const Component = (args: TooltipProps) => {
+    const [open, setOpen] = useState(false);
+
+    return (
         <Center>
             <TooltipComponent {...args}>
                 <span>Text with tooltip</span>
@@ -60,8 +64,25 @@ export const Tooltip: StoryObj<TooltipProps> = {
             <ElevationContext baseElevation={0}>
                 <ModalMock {...args} />
             </ElevationContext>
+
+            <TooltipComponent
+                interaction="none"
+                isOpen={open}
+                placement="bottom-start"
+                content={
+                    <div>
+                        <Button onClick={() => setOpen(false)}>Click to close</Button>
+                    </div>
+                }
+            >
+                <Button onClick={() => setOpen(true)}>Click to open Tooltip</Button>
+            </TooltipComponent>
         </Center>
-    ),
+    );
+};
+
+export const Tooltip: StoryObj<TooltipProps> = {
+    render: args => <Component {...args} />,
     args: {
         content: 'Passphrase is an optional feature',
         offset: 10,

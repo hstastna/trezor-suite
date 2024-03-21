@@ -51,6 +51,7 @@ export type TooltipProps = {
     cursor?: Cursor;
     isFullWidth?: boolean;
     interaction?: TooltipInteraction;
+    isOpen?: boolean;
 } & TooltipBoxProps;
 
 type InteractionProps = Pick<HtmlHTMLAttributes<HTMLDivElement>, 'onMouseEnter' | 'onMouseLeave'>;
@@ -76,40 +77,47 @@ export const Tooltip = ({
     isFullWidth = false,
     initialOpen = false,
     interaction = 'hover',
+    isOpen,
 }: TooltipProps) => {
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpenState, setIsOpenState] = useState(false);
+
+    const isControlled = isOpen !== undefined;
 
     useEffect(() => {
-        setIsOpen(initialOpen);
-    }, [initialOpen]);
+        if (initialOpen !== undefined || isOpen !== undefined) {
+            setIsOpenState(initialOpen || isOpen === true);
+        }
+    }, [initialOpen, isOpen]);
 
     if (!content || !children) {
         return <>{children}</>;
     }
 
     const interactionProps: InteractionProps =
-        interaction === 'hover'
+        interaction === 'hover' && !isControlled
             ? {
-                  onMouseEnter: () => setIsOpen(true),
-                  onMouseLeave: () => setIsOpen(false),
+                  onMouseEnter: () => setIsOpenState(true),
+                  onMouseLeave: () => setIsOpenState(false),
               }
             : {};
+
+    const handleOnOpenChange = (open: boolean) => {
+        setIsOpenState(open);
+
+        if (open) {
+            onShow?.();
+        } else {
+            onHide?.();
+        }
+    };
 
     return (
         <Wrapper $isFullWidth={isFullWidth} className={className}>
             <FloatingDelayGroup delay={{ open: delayShow, close: delayHide }}>
                 <TooltipFloatingUi
                     placement={placement}
-                    open={isOpen}
-                    onOpenChange={open => {
-                        setIsOpen(open);
-
-                        if (open) {
-                            onShow?.();
-                        } else {
-                            onHide?.();
-                        }
-                    }}
+                    open={isOpenState}
+                    onOpenChange={isControlled ? undefined : handleOnOpenChange}
                     offset={offset}
                 >
                     <TooltipTrigger {...interactionProps}>
@@ -121,7 +129,7 @@ export const Tooltip = ({
                     <TooltipContent data-test="@tooltip" style={{ zIndex: zIndices.tooltip }}>
                         <TooltipBox
                             content={content}
-                            isOpen={isOpen}
+                            isOpen={isOpenState}
                             addon={addon}
                             headerIcon={headerIcon}
                             isLarge={isLarge}
