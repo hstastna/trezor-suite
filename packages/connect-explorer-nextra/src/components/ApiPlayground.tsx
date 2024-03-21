@@ -3,14 +3,14 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { Type, TSchema } from '@sinclair/typebox';
 
-import { Card, CollapsibleBox, SelectBar, variables } from '@trezor/components';
+import { CollapsibleBox, SelectBar, variables } from '@trezor/components';
 
 import { Method } from './Method';
 import { useActions } from '../hooks';
 import * as methodActions from '../actions/methodActions';
 import { MethodState } from '../reducers/methodCommon';
 
-const ApiPlaygroundWrapper = styled(Card)`
+const ApiPlaygroundWrapper = styled.div`
     display: block;
     position: fixed;
     z-index: 50;
@@ -22,7 +22,6 @@ const ApiPlaygroundWrapper = styled(Card)`
     overflow-x: auto;
     border-radius: 1rem;
     padding: 0;
-    border: 1px solid ${({ theme }) => theme.STROKE_GREY};
     box-shadow: ${({ theme }) => theme.boxShadowElevated};
 
     @media (min-width: ${variables.SCREEN_SIZE.LG}) {
