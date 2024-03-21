@@ -72,17 +72,13 @@ export class TrezordNode {
             app.post('/enumerate', [
                 (_req, res) => {
                     res.setHeader('Content-Type', 'text/plain');
-                    this.api
-                        .enumerate()
-                        .then(result => {
-                            if (!result.success) {
-                                throw new Error(result.error);
-                            }
-                            res.end(str(result.payload.descriptors));
-                        })
-                        .catch(err => {
-                            res.end(str({ error: err.message }));
-                        });
+                    this.api.enumerate().then(result => {
+                        if (!result.success) {
+                            res.statusCode = 400;
+                            return res.end(str({ error: result.error }));
+                        }
+                        res.end(str(result.payload.descriptors));
+                    });
                 },
             ]);
 
@@ -112,6 +108,7 @@ export class TrezordNode {
                         )
                         .then(result => {
                             if (!result.success) {
+                                res.statusCode = 400;
                                 return res.end(str({ error: result.error }));
                             }
                             res.end(str({ session: result.payload.session }));
@@ -130,6 +127,7 @@ export class TrezordNode {
                         })
                         .then(result => {
                             if (!result.success) {
+                                res.statusCode = 400;
                                 return res.end(str({ error: result.error }));
                             }
                             res.end(str({ session: req.params.session }));
@@ -148,6 +146,7 @@ export class TrezordNode {
                         })
                         .then(result => {
                             if (!result.success) {
+                                res.statusCode = 400;
                                 return res.end(str({ error: result.error }));
                             }
                             res.end(str(result.payload));
@@ -160,6 +159,7 @@ export class TrezordNode {
                 (req, res) => {
                     this.api.receive({ session: req.params.session }).then(result => {
                         if (!result.success) {
+                            res.statusCode = 400;
                             return res.end(str({ error: result.error }));
                         }
                         res.end(str(result.payload));
@@ -178,6 +178,7 @@ export class TrezordNode {
                         })
                         .then(result => {
                             if (!result.success) {
+                                res.statusCode = 400;
                                 return res.end(str({ error: result.error }));
                             }
                             res.end();
