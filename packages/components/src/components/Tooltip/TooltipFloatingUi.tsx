@@ -16,7 +16,7 @@ import {
     useMergeRefs,
     useTransitionStyles,
 } from '@floating-ui/react';
-import type { Placement } from '@floating-ui/react';
+import type { Placement, UseFloatingReturn } from '@floating-ui/react';
 
 /**
  * This is basically a copy-paste from https://floating-ui.com/docs/tooltip
@@ -32,13 +32,18 @@ interface TooltipOptions {
     offset?: number;
 }
 
-export function useTooltip({
+type UseTooltipReturn = ReturnType<typeof useInteractions> & {
+    open: boolean;
+    setOpen: (open: boolean) => void;
+} & UseFloatingReturn;
+
+export const useTooltip = ({
     initialOpen = false,
     placement = 'top',
     open: controlledOpen,
     onOpenChange: setControlledOpen,
     offset: offsetValue = 10,
-}: TooltipOptions = {}) {
+}: TooltipOptions = {}): UseTooltipReturn => {
     const [uncontrolledOpen, setUncontrolledOpen] = React.useState(initialOpen);
 
     const open = controlledOpen ?? uncontrolledOpen;
@@ -78,13 +83,13 @@ export function useTooltip({
         }),
         [open, setOpen, interactions, data],
     );
-}
+};
 
-type ContextType = ReturnType<typeof useTooltip> | null;
+type ContextType = ReturnType<typeof useTooltip>;
 
-const TooltipContext = React.createContext<ContextType>(null);
+const TooltipContext = React.createContext<ContextType | null>(null);
 
-export const useTooltipState = () => {
+export const useTooltipState = (): ContextType => {
     const context = React.useContext(TooltipContext);
 
     if (context == null) {
@@ -94,28 +99,29 @@ export const useTooltipState = () => {
     return context;
 };
 
-export function TooltipFloatingUi({
-    children,
-    ...options
-}: { children: React.ReactNode } & TooltipOptions) {
+type TooltipFloatingUiProps = { children: React.ReactNode } & TooltipOptions;
+
+export const TooltipFloatingUi = ({ children, ...options }: TooltipFloatingUiProps) => {
     // This can accept any props as options, e.g. `placement`,
     // or other positioning options.
     const tooltip = useTooltip(options);
 
     return <TooltipContext.Provider value={tooltip}>{children}</TooltipContext.Provider>;
-}
+};
 
-export const TooltipTrigger = React.forwardRef<
-    HTMLElement,
-    React.HTMLProps<HTMLElement> & { asChild?: boolean }
->(function TooltipTrigger({ children, asChild = false, ...props }, propRef) {
-    const state = useTooltipState();
+type TooltipTriggerProps = React.HTMLProps<HTMLElement>;
 
-    const childrenRef = (children as any).ref;
-    const ref = useMergeRefs([state.refs.setReference, propRef, childrenRef]);
+export const TooltipTrigger = React.forwardRef<HTMLElement, TooltipTriggerProps>(
+    ({ children, ...props }, propRef) => {
+        const state = useTooltipState();
 
-    // `asChild` allows the user to pass any element as the anchor
-    if (asChild && React.isValidElement(children)) {
+        const childrenRef = (children as any).ref;
+        const ref = useMergeRefs([state.refs.setReference, propRef, childrenRef]);
+
+        if (!React.isValidElement(children)) {
+            return <div>Invalid React Element</div>;
+        }
+
         return React.cloneElement(
             children,
             state.getReferenceProps({
@@ -125,21 +131,12 @@ export const TooltipTrigger = React.forwardRef<
                 'data-state': state.open ? 'open' : 'closed',
             }),
         );
-    }
+    },
+);
 
-    return (
-        <button
-            ref={ref}
-            // The user can style the trigger based on the state
-            data-state={state.open ? 'open' : 'closed'}
-            {...state.getReferenceProps(props)}
-        >
-            {children}
-        </button>
-    );
-});
+type TooltipContentProps = React.HTMLProps<HTMLDivElement>;
 
-export const TooltipContent = React.forwardRef<HTMLDivElement, React.HTMLProps<HTMLDivElement>>(
+export const TooltipContent = React.forwardRef<HTMLDivElement, TooltipContentProps>(
     function TooltipContent(props, propRef) {
         const state = useTooltipState();
         const { isInstantPhase, currentId } = useDelayGroupContext();

@@ -112,7 +112,7 @@ export const Tooltip = ({
                     }}
                     offset={offset}
                 >
-                    <TooltipTrigger asChild {...interactionProps}>
+                    <TooltipTrigger {...interactionProps}>
                         <Content $dashed={dashed} $cursor={disabled ? 'default' : cursor}>
                             {children}
                         </Content>
