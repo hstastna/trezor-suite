@@ -66,6 +66,7 @@ export const Component = (args: TooltipProps) => {
             </ElevationContext>
 
             <TooltipComponent
+                {...args}
                 interaction="none"
                 isOpen={open}
                 placement="bottom-start"
@@ -108,8 +109,21 @@ export const Tooltip: StoryObj<TooltipProps> = {
             },
         },
         placement: {
-            control: 'radio',
-            options: ['top', 'right', 'bottom', 'left'] as Placement[],
+            control: 'select',
+            options: [
+                'top',
+                'top-start',
+                'top-end',
+                'right',
+                'right-start',
+                'right-end',
+                'bottom',
+                'bottom-start',
+                'bottom-end',
+                'left',
+                'left-start',
+                'left-end',
+            ] as Placement[],
         },
         cursor: {
             options: ['pointer', 'help', 'not-allowed', 'default'],

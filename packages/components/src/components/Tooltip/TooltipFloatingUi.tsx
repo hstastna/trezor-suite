@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
     useFloating,
     autoUpdate,
@@ -15,8 +14,24 @@ import {
     useDelayGroupContext,
     useMergeRefs,
     useTransitionStyles,
+    FloatingArrow,
+    arrow,
 } from '@floating-ui/react';
 import type { Placement, UseFloatingReturn } from '@floating-ui/react';
+import {
+    useState,
+    useMemo,
+    createContext,
+    useContext,
+    ReactNode,
+    HTMLProps,
+    forwardRef,
+    isValidElement,
+    cloneElement,
+    useRef,
+    RefObject,
+    CSSProperties,
+} from 'react';
 
 /**
  * This is basically a copy-paste from https://floating-ui.com/docs/tooltip
@@ -35,6 +50,7 @@ interface TooltipOptions {
 type UseTooltipReturn = ReturnType<typeof useInteractions> & {
     open: boolean;
     setOpen: (open: boolean) => void;
+    arrowRef: RefObject<SVGSVGElement>;
 } & UseFloatingReturn;
 
 export const useTooltip = ({
@@ -44,7 +60,8 @@ export const useTooltip = ({
     onOpenChange: setControlledOpen,
     offset: offsetValue = 10,
 }: TooltipOptions = {}): UseTooltipReturn => {
-    const [uncontrolledOpen, setUncontrolledOpen] = React.useState(initialOpen);
+    const arrowRef = useRef<SVGSVGElement>(null);
+    const [uncontrolledOpen, setUncontrolledOpen] = useState(initialOpen);
 
     const open = controlledOpen ?? uncontrolledOpen;
     const setOpen = setControlledOpen ?? setUncontrolledOpen;
@@ -56,7 +73,7 @@ export const useTooltip = ({
         open,
         onOpenChange: setOpen,
         whileElementsMounted: autoUpdate,
-        middleware: [offset(offsetValue), flip(), shift()],
+        middleware: [offset(offsetValue), flip(), shift(), arrow({ element: arrowRef })],
     });
 
     const { context } = data;
@@ -74,12 +91,13 @@ export const useTooltip = ({
 
     const interactions = useInteractions([hover, focus, dismiss, role]);
 
-    return React.useMemo(
+    return useMemo(
         () => ({
             open,
             setOpen,
             ...interactions,
             ...data,
+            arrowRef,
         }),
         [open, setOpen, interactions, data],
     );
@@ -87,10 +105,10 @@ export const useTooltip = ({
 
 type ContextType = ReturnType<typeof useTooltip>;
 
-const TooltipContext = React.createContext<ContextType | null>(null);
+export const TooltipContext = createContext<ContextType | null>(null);
 
 export const useTooltipState = (): ContextType => {
-    const context = React.useContext(TooltipContext);
+    const context = useContext(TooltipContext);
 
     if (context == null) {
         throw new Error('Tooltip components must be wrapped in <Tooltip />');
@@ -99,7 +117,7 @@ export const useTooltipState = (): ContextType => {
     return context;
 };
 
-type TooltipFloatingUiProps = { children: React.ReactNode } & TooltipOptions;
+type TooltipFloatingUiProps = { children: ReactNode } & TooltipOptions;
 
 export const TooltipFloatingUi = ({ children, ...options }: TooltipFloatingUiProps) => {
     // This can accept any props as options, e.g. `placement`,
@@ -109,20 +127,20 @@ export const TooltipFloatingUi = ({ children, ...options }: TooltipFloatingUiPro
     return <TooltipContext.Provider value={tooltip}>{children}</TooltipContext.Provider>;
 };
 
-type TooltipTriggerProps = React.HTMLProps<HTMLElement>;
+type TooltipTriggerProps = HTMLProps<HTMLElement>;
 
-export const TooltipTrigger = React.forwardRef<HTMLElement, TooltipTriggerProps>(
+export const TooltipTrigger = forwardRef<HTMLElement, TooltipTriggerProps>(
     ({ children, ...props }, propRef) => {
         const state = useTooltipState();
 
         const childrenRef = (children as any).ref;
         const ref = useMergeRefs([state.refs.setReference, propRef, childrenRef]);
 
-        if (!React.isValidElement(children)) {
+        if (!isValidElement(children)) {
             return <div>Invalid React Element</div>;
         }
 
-        return React.cloneElement(
+        return cloneElement(
             children,
             state.getReferenceProps({
                 ref,
@@ -134,54 +152,54 @@ export const TooltipTrigger = React.forwardRef<HTMLElement, TooltipTriggerProps>
     },
 );
 
-type TooltipContentProps = React.HTMLProps<HTMLDivElement>;
+type TooltipContentProps = HTMLProps<HTMLDivElement>;
 
-export const TooltipContent = React.forwardRef<HTMLDivElement, TooltipContentProps>(
-    function TooltipContent(props, propRef) {
-        const state = useTooltipState();
-        const { isInstantPhase, currentId } = useDelayGroupContext();
-        const ref = useMergeRefs([state.refs.setFloating, propRef]);
+export const TooltipContent = forwardRef<HTMLDivElement, TooltipContentProps>((props, propRef) => {
+    const state = useTooltipState();
+    const { isInstantPhase, currentId } = useDelayGroupContext();
+    const ref = useMergeRefs([state.refs.setFloating, propRef]);
 
-        useDelayGroup(state.context, { id: state.context.floatingId });
+    useDelayGroup(state.context, { id: state.context.floatingId });
 
-        const instantDuration = 0;
-        const duration = 250;
+    const instantDuration = 0;
+    const duration = 250;
 
-        const { isMounted, styles } = useTransitionStyles(state.context, {
-            duration: isInstantPhase
-                ? {
-                      open: instantDuration,
-                      // `id` is this component's `id`
-                      // `currentId` is the current group's `id`
-                      close: currentId === state.context.floatingId ? duration : instantDuration,
-                  }
-                : duration,
-            initial: {
-                opacity: 0,
-            },
-        });
+    const { isMounted, styles } = useTransitionStyles(state.context, {
+        duration: isInstantPhase
+            ? {
+                  open: instantDuration,
+                  // `id` is this component's `id`
+                  // `currentId` is the current group's `id`
+                  close: currentId === state.context.floatingId ? duration : instantDuration,
+              }
+            : duration,
+        initial: {
+            opacity: 0,
+        },
+    });
 
-        if (!isMounted) return null;
+    if (!isMounted) return null;
 
-        // This is needed to allow passing of custom styled into TooltipContent.
-        // This required for z-index.
-        //
-        // @see https://floating-ui.com/docs/misc#z-index-stacking
-        const floatingProps = state.getFloatingProps(props);
-        delete floatingProps.style;
+    // This is needed to allow passing of custom styled into TooltipContent.
+    // This required for z-index.
+    //
+    // @see https://floating-ui.com/docs/misc#z-index-stacking
+    const floatingProps = state.getFloatingProps(props);
+    const { style, children, ...restOfFloatingProps } = floatingProps;
 
-        return (
-            <FloatingPortal>
-                <div
-                    ref={ref}
-                    style={{
-                        ...state.floatingStyles,
-                        ...props.style,
-                        ...styles,
-                    }}
-                    {...floatingProps}
-                />
-            </FloatingPortal>
-        );
-    },
-);
+    return (
+        <FloatingPortal>
+            <div
+                ref={ref}
+                style={{
+                    ...state.floatingStyles,
+                    ...(style as CSSProperties),
+                    ...styles,
+                }}
+                {...restOfFloatingProps}
+            >
+                {children as ReactNode}
+            </div>
+        </FloatingPortal>
+    );
+});
