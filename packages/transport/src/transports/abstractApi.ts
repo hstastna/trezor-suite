@@ -120,8 +120,7 @@ export abstract class AbstractApiTransport extends AbstractTransport {
 
                 this.acquiredUnconfirmed[path] = acquireIntentResponse.payload.session;
 
-                const reset = !!input.previous;
-                const openDeviceResult = await this.api.openDevice(path, reset);
+                const openDeviceResult = await this.api.openDevice(path, true);
 
                 if (!openDeviceResult.success) {
                     if (this.listenPromise) {

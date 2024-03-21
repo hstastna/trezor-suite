@@ -173,6 +173,7 @@ export class SessionsBackground extends TypedEmitter<{
     private async acquireIntent(payload: AcquireIntentRequest) {
         const previous = this.sessions[payload.path];
 
+        // if previous is not 'null' (meaning force acquire), return error, if session does not match
         if (payload.previous && payload.previous !== previous) {
             return this.error(ERRORS.SESSION_WRONG_PREVIOUS);
         }
@@ -188,7 +189,7 @@ export class SessionsBackground extends TypedEmitter<{
             return this.error(ERRORS.SESSION_WRONG_PREVIOUS);
         }
 
-        // new "unconfirmed" descriptors are  broadcasted. we can't yet update this.sessions object as it needs
+        // new "unconfirmed" descriptors are broadcasted. we can't yet update this.sessions object as it needs
         // to stay as it is. we can not allow 2 clients sending session:null to proceed. this way only one gets through
         const unconfirmedSessions = JSON.parse(JSON.stringify(this.sessions));
         const id = `${this.getNewSessionId()}`;
@@ -220,13 +221,13 @@ export class SessionsBackground extends TypedEmitter<{
     }
 
     private async releaseIntent(payload: ReleaseIntentRequest) {
+        await this.waitInQueue();
+
         const path = this.getPathFromSessions({ session: payload.session });
 
         if (!path) {
             return this.error(ERRORS.SESSION_NOT_FOUND);
         }
-
-        await this.waitInQueue();
 
         return this.success({ path });
     }

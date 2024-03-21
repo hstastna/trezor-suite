@@ -326,6 +326,9 @@ export class Device extends TypedEmitter<DeviceEvents> {
             delete this.runPromise;
         }
 
+        if (this.commands?.callPromise) {
+            this.commands.callPromise.abort();
+        }
         // session was acquired by another instance. but another might not have power to release interface
         // so it only notified about its session acquiral and the interrupted instance should cooperate
         // and release device too.
@@ -389,14 +392,7 @@ export class Device extends TypedEmitter<DeviceEvents> {
                 this.inconsistent = true;
                 delete this.runPromise;
 
-                return Promise.reject(
-                    ERRORS.TypedError(
-                        'Device_InitializeFailed',
-                        `Initialize failed: ${error.message} ${
-                            error.code ? `, code: ${error.code}` : ''
-                        }`,
-                    ),
-                );
+                return Promise.reject(ERRORS.TypedError('Device_InitializeFailed', error.message));
             }
         }
 

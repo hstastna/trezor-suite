@@ -178,14 +178,19 @@ export class DeviceList extends TypedEmitter<DeviceListEvents> {
              */
             this.transport.on(TRANSPORT.UPDATE, diff => {
                 diff.connected.forEach(async descriptor => {
+                    // creatingDevicesDescriptors is needed, so that if *during* creating of Device,
+                    // other application acquires the device and changes the descriptor,
+                    // the new unacquired device has correct descriptor
                     const path = descriptor.path.toString();
+                    this.creatingDevicesDescriptors[path] = descriptor;
+
                     const priority = DataManager.getSettings('priority');
                     const penalty = this.getAuthPenalty();
 
                     if (priority || penalty) {
                         await resolveAfter(501 + penalty + 100 * priority, null).promise;
                     }
-                    if (descriptor.session == null) {
+                    if (this.creatingDevicesDescriptors[path].session == null) {
                         await this._createAndSaveDevice(descriptor);
                     } else {
                         const device = this._createUnacquiredDevice(descriptor);
@@ -217,7 +222,7 @@ export class DeviceList extends TypedEmitter<DeviceListEvents> {
                 diff.releasedElsewhere.forEach(async descriptor => {
                     const path = descriptor.path.toString();
                     const device = this.devices[path];
-                    await resolveAfter(1000, null).promise;
+                    await resolveAfter(2000, null).promise;
 
                     if (device) {
                         // after device was released in another window wait for a while (the other window might
@@ -269,6 +274,7 @@ export class DeviceList extends TypedEmitter<DeviceListEvents> {
                 // whenever descriptors change we need to update them so that we can use them
                 // in subsequent transport.acquire calls
                 diff.descriptors.forEach(d => {
+                    this.creatingDevicesDescriptors[d.path] = d;
                     if (this.devices[d.path]) {
                         this.devices[d.path].originalDescriptor = {
                             session: d.session,
@@ -455,12 +461,7 @@ export class DeviceList extends TypedEmitter<DeviceListEvents> {
 
     // main logic
     private async handle(descriptor: Descriptor) {
-        // creatingDevicesDescriptors is needed, so that if *during* creating of Device,
-        // other application acquires the device and changes the descriptor,
-        // the new unacquired device has correct descriptor
         const path = descriptor.path.toString();
-        this.creatingDevicesDescriptors[path] = descriptor;
-
         try {
             // "regular" device creation
             await this._takeAndCreateDevice(descriptor);
@@ -491,10 +492,10 @@ export class DeviceList extends TypedEmitter<DeviceListEvents> {
                 // or possibly there are 2 applications without common sessions background
                 error.message === TRANSPORT_ERROR.INTERFACE_UNABLE_TO_OPEN_DEVICE ||
                 // catch one of trezord LIBUSB_ERRORs
-                error.message?.indexOf(ERRORS.LIBUSB_ERROR_MESSAGE) >= 0 ||
+                error.message?.indexOf(ERRORS.LIBUSB_ERROR_MESSAGE) >= 0
                 // we tried to initialize device (either automatically after enumeration or after user click)
                 // but it did not work out. this device is effectively unreadable and user should do something about it
-                error.code === 'Device_InitializeFailed'
+                // error.code === 'Device_InitializeFailed'
             ) {
                 const device = this._createUnreadableDevice(
                     this.creatingDevicesDescriptors[path],
@@ -502,7 +503,10 @@ export class DeviceList extends TypedEmitter<DeviceListEvents> {
                 );
                 this.devices[path] = device;
                 this.emit(DEVICE.CONNECT_UNACQUIRED, device.toMessageObject());
-            } else if (error.code === 'Device_UsedElsewhere') {
+            } else if (
+                error.code === 'Device_UsedElsewhere' ||
+                error.message === TRANSPORT_ERROR.SESSION_NOT_FOUND
+            ) {
                 // most common error - someone else took the device at the same time
                 this._handleUsedElsewhere(descriptor);
             } else {

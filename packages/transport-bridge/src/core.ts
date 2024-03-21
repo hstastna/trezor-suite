@@ -7,7 +7,7 @@ import { SessionsClient } from '@trezor/transport/src/sessions/client';
 import { UsbApi } from '@trezor/transport/src/api/usb';
 import { UdpApi } from '@trezor/transport/src/api/udp';
 import { AcquireInput, ReleaseInput } from '@trezor/transport/src/transports/abstract';
-import { Log } from '@trezor/utils';
+import { Log, createTimeoutPromise } from '@trezor/utils';
 
 export const sessionsBackground = new SessionsBackground();
 
@@ -127,12 +127,18 @@ export const createApi = (apiStr: 'usb' | 'udp', logger?: Log) => {
         if (!openDeviceResult.success) {
             return openDeviceResult;
         }
+
+        // waiting for a while fixes almost all issues during 'non-cooperative' force acquire from another window
+        await createTimeoutPromise(500);
+
         await sessionsClient.acquireDone({ path: acquireInput.path });
 
         return acquireIntentResult;
     };
 
     const release = async ({ session, path }: ReleaseInput) => {
+        await api.closeDevice(path);
+
         await sessionsClient.releaseIntent({ session });
         const sessionsResult = await sessionsClient.getPathBySession({
             session,
@@ -140,8 +146,6 @@ export const createApi = (apiStr: 'usb' | 'udp', logger?: Log) => {
         if (!sessionsResult.success) {
             return sessionsResult;
         }
-
-        await api.closeDevice(path);
 
         return sessionsClient.releaseDone({ path: sessionsResult.payload.path });
     };
