@@ -1,12 +1,11 @@
 import styled from 'styled-components';
-import { useState, ReactElement, ReactNode, useEffect, HtmlHTMLAttributes } from 'react';
-import { motion } from 'framer-motion';
+import { useState, ReactNode, useEffect, HtmlHTMLAttributes } from 'react';
 import { transparentize } from 'polished';
-import { borders, palette, spacings, spacingsPx, typography, zIndices } from '@trezor/theme';
+import { zIndices } from '@trezor/theme';
 
-import { Icon, IconType } from '../assets/Icon/Icon';
 import { TooltipContent, TooltipFloatingUi, TooltipTrigger } from './TooltipFloatingUi';
 import { FloatingDelayGroup, Placement } from '@floating-ui/react';
+import { TooltipBox, TooltipBoxProps } from './TooltipBox';
 
 export const TOOLTIP_DELAY_NONE = 0;
 export const TOOLTIP_DELAY_SHORT = 200;
@@ -15,61 +14,8 @@ export const TOOLTIP_DELAY_LONG = 1000;
 
 export type Cursor = 'inherit' | 'pointer' | 'help' | 'default' | 'not-allowed';
 
-const getContainerPadding = (isLarge: boolean, isWithHeader: boolean) => {
-    if (isLarge) {
-        if (isWithHeader) {
-            return `${spacingsPx.sm} ${spacingsPx.md} ${spacingsPx.xs}`;
-        }
-
-        return `${spacingsPx.xs} ${spacingsPx.md}`;
-    }
-
-    return spacingsPx.xs;
-};
-
 const Wrapper = styled.div<{ $isFullWidth: boolean }>`
     width: ${({ $isFullWidth }) => ($isFullWidth ? '100%' : 'auto')};
-`;
-
-type TooltipContainerProps = {
-    $maxWidth: string | number;
-    $isLarge: boolean;
-    $isWithHeader: boolean;
-};
-
-const TooltipContainerStyled = styled(motion.div)<TooltipContainerProps>`
-    background: ${palette.darkGray300};
-    color: ${palette.lightWhiteAlpha1000};
-    border-radius: ${borders.radii.sm};
-    text-align: left;
-    border: solid 1.5px ${palette.darkGray100};
-    max-width: ${props => props.$maxWidth}px;
-    ${typography.hint}
-
-    > div {
-        padding: ${({ $isLarge, $isWithHeader }) => getContainerPadding($isLarge, $isWithHeader)};
-    }
-`;
-
-const HeaderContainer = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: ${spacingsPx.sm};
-    width: 100%;
-`;
-
-const TooltipTitle = styled.div<{ $isLarge: boolean }>`
-    display: flex;
-    align-items: center;
-    gap: ${spacingsPx.xxs};
-    width: 100%;
-    color: ${({ theme }) => theme.textSubdued};
-    ${({ $isLarge }) => ($isLarge ? typography.highlight : typography.hint)}
-`;
-
-const Addon = styled.div`
-    margin-left: auto;
 `;
 
 const Content = styled.div<{ $dashed: boolean; $cursor: Cursor }>`
@@ -88,55 +34,6 @@ export type TooltipDelay =
     | typeof TOOLTIP_DELAY_NORMAL
     | typeof TOOLTIP_DELAY_LONG;
 
-type TooltipComponentProps = {
-    content: ReactNode;
-    maxWidth?: string | number;
-    /**
-     *  @description Legacy prop
-     */
-    isLarge?: boolean;
-    addon?: ReactNode;
-    headerIcon?: IconType;
-    title?: ReactElement;
-};
-
-type TooltipComponentExtendedProps = TooltipComponentProps &
-    Required<Pick<TooltipComponentProps, 'maxWidth' | 'isLarge'>> & { isOpen: boolean };
-
-const TooltipContainer = ({
-    isOpen,
-    addon,
-    maxWidth,
-    isLarge,
-    content,
-    headerIcon,
-    title,
-}: TooltipComponentExtendedProps) => (
-    <TooltipContainerStyled
-        $isLarge={isLarge}
-        $isWithHeader={!!(title || addon)}
-        $maxWidth={maxWidth}
-        tabIndex={-1}
-        animate={isOpen ? 'shown' : 'hidden'}
-        transition={{ duration: 0.2, ease: 'easeInOut' }}
-    >
-        {(title || addon) && (
-            <HeaderContainer>
-                {title && (
-                    <TooltipTitle $isLarge={isLarge}>
-                        {headerIcon && <Icon icon={headerIcon} size={spacings.md} />}
-                        {title}
-                    </TooltipTitle>
-                )}
-
-                {addon && <Addon>{addon}</Addon>}
-            </HeaderContainer>
-        )}
-
-        <div>{content}</div>
-    </TooltipContainerStyled>
-);
-
 export type TooltipInteraction = 'none' | 'hover';
 
 export type TooltipProps = {
@@ -154,7 +51,7 @@ export type TooltipProps = {
     cursor?: Cursor;
     isFullWidth?: boolean;
     interaction?: TooltipInteraction;
-} & TooltipComponentProps;
+} & TooltipBoxProps;
 
 type InteractionProps = Pick<HtmlHTMLAttributes<HTMLDivElement>, 'onMouseEnter' | 'onMouseLeave'>;
 
@@ -222,7 +119,7 @@ export const Tooltip = ({
                     </TooltipTrigger>
 
                     <TooltipContent data-test="@tooltip" style={{ zIndex: zIndices.tooltip }}>
-                        <TooltipContainer
+                        <TooltipBox
                             content={content}
                             isOpen={isOpen}
                             addon={addon}
