@@ -14,7 +14,6 @@ import {
     useDelayGroupContext,
     useMergeRefs,
     useTransitionStyles,
-    FloatingArrow,
     arrow,
 } from '@floating-ui/react';
 import type { Placement, UseFloatingReturn } from '@floating-ui/react';
@@ -31,13 +30,14 @@ import {
     useRef,
     RefObject,
     CSSProperties,
+    MutableRefObject,
 } from 'react';
 
 /**
- * This is basically a copy-paste from https://floating-ui.com/docs/tooltip
- *
- * However it contains some adjustments.
+ * Based on https://floating-ui.com/docs/tooltip but heavily modified
  */
+
+type ArrowRef = RefObject<SVGSVGElement>;
 
 interface TooltipOptions {
     initialOpen?: boolean;
@@ -152,9 +152,16 @@ export const TooltipTrigger = forwardRef<HTMLElement, TooltipTriggerProps>(
     },
 );
 
-type TooltipContentProps = HTMLProps<HTMLDivElement>;
+export type ArrowProps = { ref: ArrowRef; context: UseFloatingReturn['context'] };
+
+type TooltipContentProps = HTMLProps<HTMLDivElement> & {
+    arrowRender?: (props: ArrowProps) => ReactNode;
+    appendTo?: HTMLElement | null | MutableRefObject<HTMLElement | null>;
+};
 
 export const TooltipContent = forwardRef<HTMLDivElement, TooltipContentProps>((props, propRef) => {
+    const { arrowRender, appendTo, ...htmlProps } = props;
+
     const state = useTooltipState();
     const { isInstantPhase, currentId } = useDelayGroupContext();
     const ref = useMergeRefs([state.refs.setFloating, propRef]);
@@ -184,11 +191,11 @@ export const TooltipContent = forwardRef<HTMLDivElement, TooltipContentProps>((p
     // This required for z-index.
     //
     // @see https://floating-ui.com/docs/misc#z-index-stacking
-    const floatingProps = state.getFloatingProps(props);
+    const floatingProps = state.getFloatingProps(htmlProps);
     const { style, children, ...restOfFloatingProps } = floatingProps;
 
     return (
-        <FloatingPortal>
+        <FloatingPortal root={appendTo}>
             <div
                 ref={ref}
                 style={{
@@ -198,6 +205,7 @@ export const TooltipContent = forwardRef<HTMLDivElement, TooltipContentProps>((p
                 }}
                 {...restOfFloatingProps}
             >
+                {arrowRender?.({ ref: state.arrowRef, context: state.context })}
                 {children as ReactNode}
             </div>
         </FloatingPortal>

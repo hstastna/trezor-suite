@@ -12,6 +12,7 @@ const Center = styled.div`
     flex-direction: column;
     gap: ${spacingsPx.xxl};
     justify-content: center;
+    align-items: center;
     width: 100%;
     padding: 100px 0;
 `;

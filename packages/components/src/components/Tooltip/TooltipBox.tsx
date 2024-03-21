@@ -1,12 +1,10 @@
 import { Icon, IconType } from '../assets/Icon/Icon';
-import { ReactElement, ReactNode, useContext } from 'react';
+import { ReactElement, ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { borders, palette, spacings, spacingsPx, typography } from '@trezor/theme';
-import styled, { useTheme } from 'styled-components';
-import { TooltipContext } from './TooltipFloatingUi';
-import { FloatingArrow } from '@floating-ui/react';
+import styled from 'styled-components';
 
-const BORDER_RADIUS = borders.radii.sm;
+export const TOOLTIP_BORDER_RADIUS = borders.radii.sm;
 
 const getContainerPadding = (isLarge: boolean, isWithHeader: boolean) => {
     if (isLarge) {
@@ -29,7 +27,7 @@ type TooltipContainerStyledProps = {
 const TooltipContainerStyled = styled(motion.div)<TooltipContainerStyledProps>`
     background: ${palette.darkGray300};
     color: ${palette.lightWhiteAlpha1000};
-    border-radius: ${BORDER_RADIUS};
+    border-radius: ${TOOLTIP_BORDER_RADIUS};
     text-align: left;
     border: solid 1.5px ${palette.darkGray100};
     max-width: ${props => props.$maxWidth}px;
@@ -84,49 +82,28 @@ export const TooltipBox = ({
     content,
     headerIcon,
     title,
-}: TooltipBoxExtendedProps) => {
-    const tooltipContext = useContext(TooltipContext);
-    const theme = useTheme();
-
-    if (tooltipContext === null) {
-        return null;
-    }
-
-    return (
-        <>
-            <FloatingArrow
-                ref={tooltipContext.arrowRef}
-                context={tooltipContext.context}
-                fill={palette.darkGray300}
-                stroke={palette.darkGray100}
-                staticOffset={BORDER_RADIUS}
-                strokeWidth={1}
-                tipRadius={1}
-                style={{ transform: 'translateY(-1px)' }}
-            />
-            <TooltipContainerStyled
-                $isLarge={isLarge}
-                $isWithHeader={!!(title || addon)}
-                $maxWidth={maxWidth}
-                tabIndex={-1}
-                animate={isOpen ? 'shown' : 'hidden'}
-                transition={{ duration: 0.2, ease: 'easeInOut' }}
-            >
-                {(title || addon) && (
-                    <HeaderContainer>
-                        {title && (
-                            <TooltipTitle $isLarge={isLarge}>
-                                {headerIcon && <Icon icon={headerIcon} size={spacings.md} />}
-                                {title}
-                            </TooltipTitle>
-                        )}
-
-                        {addon && <Addon>{addon}</Addon>}
-                    </HeaderContainer>
+}: TooltipBoxExtendedProps) => (
+    <TooltipContainerStyled
+        $isLarge={isLarge}
+        $isWithHeader={!!(title || addon)}
+        $maxWidth={maxWidth}
+        tabIndex={-1}
+        animate={isOpen ? 'shown' : 'hidden'}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
+    >
+        {(title || addon) && (
+            <HeaderContainer>
+                {title && (
+                    <TooltipTitle $isLarge={isLarge}>
+                        {headerIcon && <Icon icon={headerIcon} size={spacings.md} />}
+                        {title}
+                    </TooltipTitle>
                 )}
 
-                <div>{content}</div>
-            </TooltipContainerStyled>
-        </>
-    );
-};
+                {addon && <Addon>{addon}</Addon>}
+            </HeaderContainer>
+        )}
+
+        <div>{content}</div>
+    </TooltipContainerStyled>
+);

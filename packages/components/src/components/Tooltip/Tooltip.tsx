@@ -1,11 +1,11 @@
 import styled from 'styled-components';
-import { useState, ReactNode, useEffect, HtmlHTMLAttributes } from 'react';
+import { useState, ReactNode, useEffect, HtmlHTMLAttributes, MutableRefObject } from 'react';
 import { transparentize } from 'polished';
 import { zIndices } from '@trezor/theme';
-
 import { TooltipContent, TooltipFloatingUi, TooltipTrigger } from './TooltipFloatingUi';
 import { FloatingDelayGroup, Placement } from '@floating-ui/react';
 import { TooltipBox, TooltipBoxProps } from './TooltipBox';
+import { TooltipArrow } from './TooltipArrow';
 
 export const TOOLTIP_DELAY_NONE = 0;
 export const TOOLTIP_DELAY_SHORT = 200;
@@ -38,7 +38,6 @@ export type TooltipInteraction = 'none' | 'hover';
 
 export type TooltipProps = {
     children: ReactNode;
-    placement?: Placement;
     className?: string;
     disabled?: boolean;
     onShow?: () => void;
@@ -52,6 +51,9 @@ export type TooltipProps = {
     isFullWidth?: boolean;
     interaction?: TooltipInteraction;
     isOpen?: boolean;
+    placement?: Placement;
+    hasArrow?: boolean;
+    appendTo?: HTMLElement | null | MutableRefObject<HTMLElement | null>;
 } & TooltipBoxProps;
 
 type InteractionProps = Pick<HtmlHTMLAttributes<HTMLDivElement>, 'onMouseEnter' | 'onMouseLeave'>;
@@ -78,6 +80,8 @@ export const Tooltip = ({
     initialOpen = false,
     interaction = 'hover',
     isOpen,
+    hasArrow = false,
+    appendTo,
 }: TooltipProps) => {
     const [isOpenState, setIsOpenState] = useState(false);
 
@@ -126,7 +130,12 @@ export const Tooltip = ({
                         </Content>
                     </TooltipTrigger>
 
-                    <TooltipContent data-test="@tooltip" style={{ zIndex: zIndices.tooltip }}>
+                    <TooltipContent
+                        data-test="@tooltip"
+                        style={{ zIndex: zIndices.tooltip }}
+                        arrowRender={hasArrow ? TooltipArrow : undefined}
+                        appendTo={appendTo}
+                    >
                         <TooltipBox
                             content={content}
                             isOpen={isOpenState}
