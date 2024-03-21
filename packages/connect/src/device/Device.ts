@@ -243,7 +243,17 @@ export class Device extends TypedEmitter<DeviceEvents> {
     }
 
     async cleanup() {
+        // this cleanup is called even if initial call to acquire device (GetFeatures) fails, in that
+        // case, listener would be removed, features are never updated and device never emits connect-device (acquired)
+        // event again.
+
+        const deviceAcquiredListener = this.listeners(DEVICE.ACQUIRED)[0];
         this.removeAllListeners();
+
+        if (deviceAcquiredListener) {
+            this.on(DEVICE.ACQUIRED, deviceAcquiredListener);
+        }
+
         // make sure that Device_CallInProgress will not be thrown
         delete this.runPromise;
         await this.release();
