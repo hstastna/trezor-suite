@@ -62,7 +62,7 @@ export type TooltipBoxProps = {
     content: ReactNode;
     maxWidth?: string | number;
     /**
-     *  @description Legacy prop
+     *  @deprecated Legacy prop
      */
     isLarge?: boolean;
     addon?: ReactNode;
