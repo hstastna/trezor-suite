@@ -23,15 +23,14 @@ export const mapElevationToBorder = ({
     $elevation,
 }: StyledComponentElevationProps): CSSColor => {
     const map: Record<Elevation, Color> = {
-        // @TODO fix colors borderOnElevation -> borderElevation
-        '-2': 'borderOnElevationNegative', // Lower level of the application, THIS IS NEVER SHOWN
-        '-1': 'borderOnElevationNegative', // For example left menu is negative elevation
+        // @TODO fix colors borderElevation -> borderElevation
+        '-2': 'borderElevationNegative', // Lower level of the application, THIS IS NEVER SHOWN
+        '-1': 'borderElevationNegative', // For example left menu is negative elevation
 
-        // Colors below are shifted intentionally, there is this shift in design system in figma
-        0: 'borderOnElevation1',
-        1: 'borderOnElevation2',
-        2: 'borderOnElevation3',
-        3: 'borderOnElevation0',
+        0: 'borderElevation0',
+        1: 'borderElevation1',
+        2: 'borderElevation2',
+        3: 'borderElevation3',
     };
 
     return theme[map[$elevation]];
@@ -97,11 +96,11 @@ const light = {
     borderDashed: palette.lightGray400,
     borderFocus: palette.lightGray300,
     borderInverted: palette.lightWhiteAlpha1000,
-    borderOnElevation0: palette.lightGray300,
-    borderOnElevation1: palette.lightGray200,
-    borderOnElevation2: palette.lightGray300,
-    borderOnElevation3: palette.lightGray200,
-    borderOnElevationNegative: palette.lightGray400,
+    borderElevation0: palette.lightGray300,
+    borderElevation1: palette.lightGray200,
+    borderElevation2: palette.lightGray200,
+    borderElevation3: palette.lightGray200,
+    borderElevationNegative: palette.lightGray300,
     borderSecondary: palette.lightSecondaryEmerald800,
     borderSubtleInverted: palette.lightWhiteAlpha400,
     iconAlertBlue: palette.lightAccentBlue700,
@@ -185,11 +184,11 @@ export const colorVariants: Record<ThemeColorVariant, Colors> = {
         backgroundSurfaceElevation2: '#C7E5F7',
         backgroundSurfaceElevation3: '#C9B0FF',
 
-        borderOnElevationNegative: '#FF0000',
-        borderOnElevation0: '#AF4AAF', // This is rotated color (from level to 3+)
-        borderOnElevation1: '#FEB144',
-        borderOnElevation2: '#74DF74',
-        borderOnElevation3: '#0000FF',
+        borderElevationNegative: '#FF0000',
+        borderElevation0: '#FEB144',
+        borderElevation1: '#74DF74',
+        borderElevation2: '#0000FF',
+        borderElevation3: '#AF4AAF',
     } as Colors,
 
     light: light as Colors,
@@ -250,11 +249,11 @@ export const colorVariants: Record<ThemeColorVariant, Colors> = {
         borderDashed: palette.darkGray200,
         borderFocus: palette.darkGray200,
         borderInverted: palette.darkGray000,
-        borderOnElevation0: palette.darkGray100,
-        borderOnElevation1: palette.darkGray200,
-        borderOnElevation2: palette.darkGray100,
-        borderOnElevation3: palette.darkGray200,
-        borderOnElevationNegative: '#FFFFFF',
+        borderElevation0: palette.darkGray100,
+        borderElevation1: palette.darkGray200,
+        borderElevation2: palette.darkGray300,
+        borderElevation3: palette.darkGray400,
+        borderElevationNegative: '#FFFFFF',
         borderSecondary: palette.darkSecondaryGreen800,
         borderSubtleInverted: '#0000007F',
         iconAlertBlue: palette.darkAccentBlue700,

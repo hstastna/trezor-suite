@@ -3,9 +3,10 @@ import { Card } from '../Card/Card';
 import { Modal } from '../modals/Modal/Modal';
 import styled from 'styled-components';
 import { Textarea } from '../form/Textarea/Textarea';
-import { useElevation } from './ElevationContext';
+import { useElevation, ElevationContext as ElevationContextComponent } from './ElevationContext';
 import { Elevation, mapElevationToBackground } from '@trezor/theme';
 import { ReactNode } from 'react';
+import { Box } from '../Box/Box';
 
 const meta: Meta = {
     title: 'Misc/ElevationContext',
@@ -38,23 +39,26 @@ const TextareaExtender = ({ children }: { children: ReactNode }) => {
 
 export const ElevationContext: StoryObj = {
     render: () => (
-        <>
+        <ElevationContextComponent baseElevation={-2}>
             <Wrapper>
-                <Card>
-                    Elevation0
-                    <Card>
-                        Elevation 1
-                        <Card>
-                            Elevation 3
-                            <Card>
-                                Elevation 4
-                                <Card>
-                                    Elevation 5<Card>Elevation 6</Card>
-                                </Card>
-                            </Card>
-                        </Card>
-                    </Card>
-                </Card>
+                <Box>
+                    Elevation -1
+                    <Box>
+                        Elevation 0
+                        <Box>
+                            Elevation 1
+                            <Box>
+                                Elevation 2
+                                <Box>
+                                    Elevation 3
+                                    <Box>
+                                        Elevation 4<Box>Elevation 5</Box>
+                                    </Box>
+                                </Box>
+                            </Box>
+                        </Box>
+                    </Box>
+                </Box>
             </Wrapper>
 
             <Wrapper>
@@ -76,6 +80,6 @@ export const ElevationContext: StoryObj = {
                     </TextareaExtender>
                 </Card>
             </Wrapper>
-        </>
+        </ElevationContextComponent>
     ),
 };
