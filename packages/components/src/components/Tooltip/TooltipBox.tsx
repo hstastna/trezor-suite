@@ -82,28 +82,32 @@ export const TooltipBox = ({
     content,
     headerIcon,
     title,
-}: TooltipBoxExtendedProps) => (
-    <TooltipContainerStyled
-        $isLarge={isLarge}
-        $isWithHeader={!!(title || addon)}
-        $maxWidth={maxWidth}
-        tabIndex={-1}
-        animate={isOpen ? 'shown' : 'hidden'}
-        transition={{ duration: 0.2, ease: 'easeInOut' }}
-    >
-        {(title || addon) && (
-            <HeaderContainer>
-                {title && (
-                    <TooltipTitle $isLarge={isLarge}>
-                        {headerIcon && <Icon icon={headerIcon} size={spacings.md} />}
-                        {title}
-                    </TooltipTitle>
-                )}
+}: TooltipBoxExtendedProps) => {
+    const hasTitleOrAddon = title !== undefined || addon !== undefined;
 
-                {addon && <Addon>{addon}</Addon>}
-            </HeaderContainer>
-        )}
+    return (
+        <TooltipContainerStyled
+            $isLarge={isLarge}
+            $isWithHeader={hasTitleOrAddon}
+            $maxWidth={maxWidth}
+            tabIndex={-1}
+            animate={isOpen ? 'shown' : 'hidden'}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+        >
+            {hasTitleOrAddon && (
+                <HeaderContainer>
+                    {title && (
+                        <TooltipTitle $isLarge={isLarge}>
+                            {headerIcon && <Icon icon={headerIcon} size={spacings.md} />}
+                            {title}
+                        </TooltipTitle>
+                    )}
 
-        <div>{content}</div>
-    </TooltipContainerStyled>
-);
+                    {addon && <Addon>{addon}</Addon>}
+                </HeaderContainer>
+            )}
+
+            <div>{content}</div>
+        </TooltipContainerStyled>
+    );
+};
