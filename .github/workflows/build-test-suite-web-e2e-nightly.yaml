@@ -197,6 +197,7 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version-file: '.nvmrc'
+
             - name: Run e2e canary fw tests
               env:
                   COMPOSE_FILE: ./docker/docker-compose.suite-ci.yml
@@ -222,3 +223,24 @@ jobs:
                   docker-compose pull
                   docker-compose up -d ${{ matrix.CONTAINERS }}
                   docker-compose run test-run
+
+            - name: Upload logs
+              run: |
+                  docker cp docker_trezor-user-env-unix_1:/trezor-user-env/logs/debugging.log trezor-user-env-debugging.log || true
+                  docker cp docker_trezor-user-env-unix_1:/trezor-user-env/logs/emulator_bridge.log tenv-emulator-bridge-debugging.log || true
+                  docker cp docker_trezor-user-env-unix_1:/trezor-user-env/docker/version.txt trezor-user-env-version.txt || true
+
+            - name: Upload artifacts
+              # this will run the upload artifacts even if the previous steps failed (e.g. tests failed). It wont run if the workflow was cancelled.
+              if: ${{ ! cancelled() }}
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-artifacts-${{ matrix.TEST_GROUP }}
+                  path: |
+                      ./packages/suite-web/e2e/snapshots
+                      ./packages/suite-web/e2e/screenshots
+                      ./packages/suite-web/e2e/videos
+                      download-snapshots.sh
+                      trezor-user-env-debugging.log
+                      tenv-emulator-bridge-debugging.log
+                      trezor-user-env-version.txt
