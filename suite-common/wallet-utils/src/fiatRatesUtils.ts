@@ -2,6 +2,8 @@ import { NetworkSymbol } from '@suite-common/wallet-config';
 import { FiatCurrencyCode } from '@suite-common/suite-config';
 import { TokenAddress, FiatRateKey, TickerId, Timestamp } from '@suite-common/wallet-types';
 
+const ONE_HOUR_IN_SECONDS = 60 * 60;
+
 export const getFiatRateKey = (
     symbol: NetworkSymbol,
     fiatCurrency: FiatCurrencyCode,
@@ -23,17 +25,8 @@ export const getFiatRateKeyFromTicker = (
     return getFiatRateKey(symbol, fiatCurrency, tokenAddress);
 };
 
-export const roundTimestampToNearestPastHour = (timestamp: Timestamp) => {
-    const date = new Date(timestamp * 1000);
-    date.setMinutes(0, 0, 0);
-    const roundedTimestamp = Math.floor(date.getTime() / 1000);
-
-    if (roundedTimestamp > timestamp) {
-        return roundedTimestamp - 3600;
-    }
-
-    return roundedTimestamp;
-};
+export const roundTimestampToNearestPastHour = (timestamp: Timestamp) =>
+    Math.floor(timestamp / ONE_HOUR_IN_SECONDS) * ONE_HOUR_IN_SECONDS;
 
 export const roundTimestampsToNearestPastHour = (timestamps: Timestamp[]) => {
     return timestamps.map(timestamp => {
