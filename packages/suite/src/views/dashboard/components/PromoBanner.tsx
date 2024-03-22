@@ -154,16 +154,7 @@ const StoreBadge = ({
             isOpen={isTooltipOpen}
             disabled={isMobileLayout}
             content={
-                <div
-                    onMouseEnter={() => {
-                        setIsTooltipOpen(true);
-                        setShowQr(type);
-                    }}
-                    onMouseLeave={() => {
-                        setIsTooltipOpen(false);
-                        setShowQr(undefined);
-                    }}
-                >
+                <div>
                     <StoreTitle
                         $isDark={currentTheme === 'dark'}
                         image={`${image}_TITLE`}
@@ -173,20 +164,31 @@ const StoreBadge = ({
                 </div>
             }
         >
-            <TrezorLink
-                href={url}
-                variant="nostyle"
-                onClick={() =>
-                    analytics.report({
-                        type: EventType.GetMobileApp,
-                        payload: {
-                            platform: analyticsPayload,
-                        },
-                    })
-                }
+            <span
+                onMouseEnter={() => {
+                    setIsTooltipOpen(true);
+                    setShowQr(type);
+                }}
+                onMouseLeave={() => {
+                    setIsTooltipOpen(false);
+                    setShowQr(undefined);
+                }}
             >
-                <Badge image={`${image}_BADGE`} height={35} $isHighlighted={showQR === type} />
-            </TrezorLink>
+                <TrezorLink
+                    href={url}
+                    variant="nostyle"
+                    onClick={() =>
+                        analytics.report({
+                            type: EventType.GetMobileApp,
+                            payload: {
+                                platform: analyticsPayload,
+                            },
+                        })
+                    }
+                >
+                    <Badge image={`${image}_BADGE`} height={35} $isHighlighted={showQR === type} />
+                </TrezorLink>
+            </span>
         </StyledTooltip>
     );
 };
