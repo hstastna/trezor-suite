@@ -1,16 +1,12 @@
 import styled from 'styled-components';
-import { useState, ReactNode, useEffect, HtmlHTMLAttributes, MutableRefObject } from 'react';
+import { ReactNode, MutableRefObject } from 'react';
 import { transparentize } from 'polished';
-import { zIndices } from '@trezor/theme';
+import { spacings, zIndices } from '@trezor/theme';
 import { TooltipContent, TooltipFloatingUi, TooltipTrigger } from './TooltipFloatingUi';
-import { FloatingDelayGroup, Placement } from '@floating-ui/react';
+import { Placement } from '@floating-ui/react';
 import { TooltipBox, TooltipBoxProps } from './TooltipBox';
 import { TooltipArrow } from './TooltipArrow';
-
-export const TOOLTIP_DELAY_NONE = 0;
-export const TOOLTIP_DELAY_SHORT = 200;
-export const TOOLTIP_DELAY_NORMAL = 500;
-export const TOOLTIP_DELAY_LONG = 1000;
+import { TOOLTIP_DELAY_SHORT, TooltipDelay } from './TooltipDelay';
 
 export type Cursor = 'inherit' | 'pointer' | 'help' | 'default' | 'not-allowed';
 
@@ -28,35 +24,38 @@ const Content = styled.div<{ $dashed: boolean; $cursor: Cursor }>`
     }
 `;
 
-export type TooltipDelay =
-    | typeof TOOLTIP_DELAY_NONE
-    | typeof TOOLTIP_DELAY_SHORT
-    | typeof TOOLTIP_DELAY_NORMAL
-    | typeof TOOLTIP_DELAY_LONG;
-
 export type TooltipInteraction = 'none' | 'hover';
 
-export type TooltipProps = {
+type ManagedModeProps = {
+    isOpen?: boolean;
+
+    delayShow?: undefined;
+    delayHide?: undefined;
+};
+
+type UnmanagedModeProps = {
+    isOpen?: undefined;
+
+    delayShow?: TooltipDelay;
+    delayHide?: TooltipDelay;
+};
+
+type TooltipUiProps = {
     children: ReactNode;
     className?: string;
     disabled?: boolean;
-    onShow?: () => void;
-    onHide?: () => void;
-    initialOpen?: boolean;
-    delayShow?: TooltipDelay;
-    delayHide?: TooltipDelay;
     dashed?: boolean;
     offset?: number;
     cursor?: Cursor;
     isFullWidth?: boolean;
-    interaction?: TooltipInteraction;
-    isOpen?: boolean;
     placement?: Placement;
     hasArrow?: boolean;
     appendTo?: HTMLElement | null | MutableRefObject<HTMLElement | null>;
-} & TooltipBoxProps;
+};
 
-type InteractionProps = Pick<HtmlHTMLAttributes<HTMLDivElement>, 'onMouseEnter' | 'onMouseLeave'>;
+export type TooltipProps = (ManagedModeProps | UnmanagedModeProps) &
+    TooltipUiProps &
+    TooltipBoxProps;
 
 export const Tooltip = ({
     placement = 'top',
@@ -66,88 +65,55 @@ export const Tooltip = ({
     delayShow = TOOLTIP_DELAY_SHORT,
     delayHide = TOOLTIP_DELAY_SHORT,
     maxWidth = 400,
-    offset = 10,
+    offset = spacings.sm,
     cursor = 'help',
     content,
     addon,
     title,
     headerIcon,
     disabled,
-    onShow,
-    onHide,
     className,
     isFullWidth = false,
-    initialOpen = false,
-    interaction = 'hover',
     isOpen,
     hasArrow = false,
     appendTo,
 }: TooltipProps) => {
-    const [isOpenState, setIsOpenState] = useState(false);
-
-    const isControlled = isOpen !== undefined;
-
-    useEffect(() => {
-        if (initialOpen !== undefined || isOpen !== undefined) {
-            setIsOpenState(initialOpen || isOpen === true);
-        }
-    }, [initialOpen, isOpen]);
-
     if (!content || !children) {
         return <>{children}</>;
     }
 
-    const interactionProps: InteractionProps =
-        interaction === 'hover' && !isControlled
-            ? {
-                  onMouseEnter: () => setIsOpenState(true),
-                  onMouseLeave: () => setIsOpenState(false),
-              }
-            : {};
-
-    const handleOnOpenChange = (open: boolean) => {
-        setIsOpenState(open);
-
-        if (open) {
-            onShow?.();
-        } else {
-            onHide?.();
-        }
-    };
+    const delayConfiguration = { open: delayShow, close: delayHide };
 
     return (
         <Wrapper $isFullWidth={isFullWidth} className={className}>
-            <FloatingDelayGroup delay={{ open: delayShow, close: delayHide }}>
-                <TooltipFloatingUi
-                    placement={placement}
-                    isOpen={isOpenState}
-                    onOpenChange={isControlled ? undefined : handleOnOpenChange}
-                    offset={offset}
-                >
-                    <TooltipTrigger {...interactionProps}>
-                        <Content $dashed={dashed} $cursor={disabled ? 'default' : cursor}>
-                            {children}
-                        </Content>
-                    </TooltipTrigger>
+            <TooltipFloatingUi
+                placement={placement}
+                isOpen={isOpen}
+                offset={offset}
+                delay={delayConfiguration}
+            >
+                <TooltipTrigger>
+                    <Content $dashed={dashed} $cursor={disabled ? 'default' : cursor}>
+                        {children}
+                    </Content>
+                </TooltipTrigger>
 
-                    <TooltipContent
-                        data-test="@tooltip"
-                        style={{ zIndex: zIndices.tooltip }}
-                        arrowRender={hasArrow ? TooltipArrow : undefined}
-                        appendTo={appendTo}
-                    >
-                        <TooltipBox
-                            content={content}
-                            isOpen={isOpenState}
-                            addon={addon}
-                            headerIcon={headerIcon}
-                            isLarge={isLarge}
-                            maxWidth={maxWidth}
-                            title={title}
-                        />
-                    </TooltipContent>
-                </TooltipFloatingUi>
-            </FloatingDelayGroup>
+                <TooltipContent
+                    data-test="@tooltip"
+                    style={{ zIndex: zIndices.tooltip }}
+                    arrowRender={hasArrow ? TooltipArrow : undefined}
+                    appendTo={appendTo}
+                >
+                    <TooltipBox
+                        content={content}
+                        addon={addon}
+                        headerIcon={headerIcon}
+                        isLarge={isLarge}
+                        maxWidth={maxWidth}
+                        title={title}
+                    />
+                </TooltipContent>
+            </TooltipFloatingUi>
         </Wrapper>
     );
 };

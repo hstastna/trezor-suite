@@ -10,8 +10,6 @@ import {
     useRole,
     useInteractions,
     FloatingPortal,
-    useDelayGroup,
-    useDelayGroupContext,
     useMergeRefs,
     useTransitionStyles,
     arrow,
@@ -37,16 +35,22 @@ import {
  * Based on https://floating-ui.com/docs/tooltip but heavily modified
  */
 
-const DEFAULT_TOOLTIP_OFFSET = 10;
+const TRANSITION_DURATION_MS = 250;
 
 type ArrowRef = RefObject<SVGSVGElement>;
+
+type Delay = {
+    open: number;
+    close: number;
+};
 
 interface TooltipOptions {
     isInitiallyOpen?: boolean;
     placement?: Placement;
     isOpen?: boolean;
     onOpenChange?: (open: boolean) => void;
-    offset?: number;
+    offset: number;
+    delay: Delay;
 }
 
 type UseTooltipReturn = ReturnType<typeof useInteractions> & {
@@ -60,15 +64,14 @@ export const useTooltip = ({
     placement = 'top',
     isOpen: isControlledOpen,
     onOpenChange: setControlledOpen,
-    offset: offsetValue = DEFAULT_TOOLTIP_OFFSET,
-}: TooltipOptions = {}): UseTooltipReturn => {
+    offset: offsetValue,
+    delay,
+}: TooltipOptions): UseTooltipReturn => {
     const arrowRef = useRef<SVGSVGElement>(null);
     const [isUncontrolledTooltipOpen, setIsUncontrolledTooltipOpen] = useState(isInitiallyOpen);
 
     const open = isControlledOpen ?? isUncontrolledTooltipOpen;
     const setOpen = setControlledOpen ?? setIsUncontrolledTooltipOpen;
-
-    const { delay } = useDelayGroupContext();
 
     const data = useFloating({
         placement,
@@ -165,23 +168,10 @@ export const TooltipContent = forwardRef<HTMLDivElement, TooltipContentProps>((p
     const { arrowRender, appendTo, ...htmlProps } = props;
 
     const state = useTooltipState();
-    const { isInstantPhase, currentId } = useDelayGroupContext();
     const ref = useMergeRefs([state.refs.setFloating, propRef]);
 
-    useDelayGroup(state.context, { id: state.context.floatingId });
-
-    const instantDuration = 0;
-    const duration = 250;
-
     const { isMounted, styles } = useTransitionStyles(state.context, {
-        duration: isInstantPhase
-            ? {
-                  open: instantDuration,
-                  // `id` is this component's `id`
-                  // `currentId` is the current group's `id`
-                  close: currentId === state.context.floatingId ? duration : instantDuration,
-              }
-            : duration,
+        duration: TRANSITION_DURATION_MS,
         initial: {
             opacity: 0,
         },

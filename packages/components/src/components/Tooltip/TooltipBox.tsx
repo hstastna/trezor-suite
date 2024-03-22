@@ -1,6 +1,5 @@
 import { Icon, IconType } from '../assets/Icon/Icon';
 import { ReactElement, ReactNode } from 'react';
-import { motion } from 'framer-motion';
 import { borders, palette, spacings, spacingsPx, typography } from '@trezor/theme';
 import styled from 'styled-components';
 
@@ -24,7 +23,7 @@ type TooltipContainerStyledProps = {
     $isWithHeader: boolean;
 };
 
-const TooltipContainerStyled = styled(motion.div)<TooltipContainerStyledProps>`
+const TooltipContainerStyled = styled.div<TooltipContainerStyledProps>`
     background: ${palette.darkGray300};
     color: ${palette.lightWhiteAlpha1000};
     border-radius: ${TOOLTIP_BORDER_RADIUS};
@@ -72,10 +71,9 @@ export type TooltipBoxProps = {
 };
 
 type TooltipBoxExtendedProps = TooltipBoxProps &
-    Required<Pick<TooltipBoxProps, 'maxWidth' | 'isLarge'>> & { isOpen: boolean };
+    Required<Pick<TooltipBoxProps, 'maxWidth' | 'isLarge'>>;
 
 export const TooltipBox = ({
-    isOpen,
     addon,
     maxWidth,
     isLarge,
@@ -91,8 +89,6 @@ export const TooltipBox = ({
             $isWithHeader={hasTitleOrAddon}
             $maxWidth={maxWidth}
             tabIndex={-1}
-            animate={isOpen ? 'shown' : 'hidden'}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
         >
             {hasTitleOrAddon && (
                 <HeaderContainer>

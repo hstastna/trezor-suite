@@ -1,11 +1,17 @@
 import styled from 'styled-components';
-import { Tooltip as TooltipComponent, TooltipInteraction, TooltipProps } from './Tooltip';
+import { Tooltip as TooltipComponent, TooltipProps } from './Tooltip';
 import { Meta, StoryObj } from '@storybook/react';
 import { Placement } from '@floating-ui/react';
 import { Elevation, mapElevationToBackground, spacingsPx, zIndices } from '@trezor/theme';
 import { ElevationContext, useElevation } from '../ElevationContext/ElevationContext';
-import { Button } from '../..';
+import {
+    TOOLTIP_DELAY_LONG,
+    TOOLTIP_DELAY_NONE,
+    TOOLTIP_DELAY_NORMAL,
+    TOOLTIP_DELAY_SHORT,
+} from './TooltipDelay';
 import { useState } from 'react';
+import { Button } from '../buttons/Button/Button';
 
 const Center = styled.div`
     display: flex;
@@ -68,7 +74,8 @@ const TooltipWrapper = (args: TooltipProps) => {
 
             <TooltipComponent
                 {...args}
-                interaction="none"
+                delayShow={undefined}
+                delayHide={undefined}
                 isOpen={open}
                 placement="bottom-start"
                 content={
@@ -83,16 +90,18 @@ const TooltipWrapper = (args: TooltipProps) => {
     );
 };
 
+const DELAYS = [TOOLTIP_DELAY_NONE, TOOLTIP_DELAY_SHORT, TOOLTIP_DELAY_NORMAL, TOOLTIP_DELAY_LONG];
+
 export const Tooltip: StoryObj<TooltipProps> = {
-    render: args => <TooltipWrapper {...args} />,
+    render: (args: TooltipProps) => <TooltipWrapper {...args} />,
     args: {
         content: 'Passphrase is an optional feature',
         offset: 10,
-        initialOpen: false,
-        interaction: 'hover',
+        delayHide: TOOLTIP_DELAY_SHORT,
+        delayShow: TOOLTIP_DELAY_SHORT,
     },
     argTypes: {
-        initialOpen: {
+        hasArrow: {
             type: 'boolean',
         },
         maxWidth: {
@@ -127,6 +136,7 @@ export const Tooltip: StoryObj<TooltipProps> = {
             ] as Placement[],
         },
         cursor: {
+            control: 'select',
             options: ['pointer', 'help', 'not-allowed', 'default'],
         },
         addon: {
@@ -140,9 +150,13 @@ export const Tooltip: StoryObj<TooltipProps> = {
                 },
             },
         },
-        interaction: {
-            control: 'radio',
-            options: ['hover', 'none'] as TooltipInteraction[],
+        delayHide: {
+            control: 'select',
+            options: DELAYS,
+        },
+        delayShow: {
+            control: 'select',
+            options: DELAYS,
         },
     },
 };
