@@ -37,6 +37,8 @@ import {
  * Based on https://floating-ui.com/docs/tooltip but heavily modified
  */
 
+const DEFAULT_TOOLTIP_OFFSET = 10;
+
 type ArrowRef = RefObject<SVGSVGElement>;
 
 interface TooltipOptions {
@@ -58,7 +60,7 @@ export const useTooltip = ({
     placement = 'top',
     isOpen: isControlledOpen,
     onOpenChange: setControlledOpen,
-    offset: offsetValue = 10,
+    offset: offsetValue = DEFAULT_TOOLTIP_OFFSET,
 }: TooltipOptions = {}): UseTooltipReturn => {
     const arrowRef = useRef<SVGSVGElement>(null);
     const [uncontrolledOpen, setUncontrolledOpen] = useState(isInitiallyOpen);
