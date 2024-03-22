@@ -63,10 +63,10 @@ export const useTooltip = ({
     offset: offsetValue = DEFAULT_TOOLTIP_OFFSET,
 }: TooltipOptions = {}): UseTooltipReturn => {
     const arrowRef = useRef<SVGSVGElement>(null);
-    const [uncontrolledOpen, setUncontrolledOpen] = useState(isInitiallyOpen);
+    const [isUncontrolledTooltipOpen, setIsUncontrolledTooltipOpen] = useState(isInitiallyOpen);
 
-    const open = isControlledOpen ?? uncontrolledOpen;
-    const setOpen = setControlledOpen ?? setUncontrolledOpen;
+    const open = isControlledOpen ?? isUncontrolledTooltipOpen;
+    const setOpen = setControlledOpen ?? setIsUncontrolledTooltipOpen;
 
     const { delay } = useDelayGroupContext();
 
