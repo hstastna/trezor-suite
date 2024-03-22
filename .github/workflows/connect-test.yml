@@ -297,3 +297,30 @@ jobs:
       matrix:
         firmware: ["2.2.0", "2-main"]
       fail-fast: false
+
+  connect-T2B1:
+    needs: [build]
+    # if: github.event_name == 'schedule'
+    uses: ./.github/workflows/connect-test-params.yml
+    with:
+      test-pattern: ${{ matrix.pattern }}
+      methods: ${{ matrix.pattern }}
+      tests-firmware: "2-latest"
+      test-firmware-model: "R"
+    strategy:
+      matrix:
+        pattern: ["authenticateDevice", "methods"]
+        methods: [
+            "applySettings,applyFlags,getFirmwareHash", # getFeatures (capabilities)
+            # "signTransaction", (unsupported chain in fixtures)
+            "getAccountInfo,getAccountDescriptor,getPublicKey,signMessage,verifyMessage,composeTransaction,getOwnershipId,getOwnershipProof", # getAddress (unsupported chain in fixtures)
+            "stellarGetAddress,stellarSignTransaction",
+            "cardanoGetAddress,cardanoGetNativeScriptHash,cardanoGetPublicKey,cardanoSignTransaction",
+            # eos not supported
+            "ethereumGetAddress,ethereumGetPublicKey,ethereumSignMessage,ethereumSignTransaction,ethereumVerifyMessage,ethereumSignTypedData",
+            # nem not supported
+            "rippleGetAddress,rippleSignTransaction",
+            "tezosGetAddress,tezosGetPublicKey,tezosSignTransaction",
+            "binanceGetAddress,binanceGetPublicKey,binanceSignTransaction",
+          ]
+      fail-fast: false
