@@ -229,7 +229,6 @@ export const getRootReducer = (selectedAccount = BTC_ACCOUNT, fees = DEFAULT_FEE
                             error: null,
                             isLoading: false,
                             lastTickerTimestamp: 1693235607743000,
-                            lastSuccessfulFetchTimestamp: 1693235607743,
                             rate: 1,
                             ticker: {
                                 symbol: 'btc',
@@ -239,7 +238,6 @@ export const getRootReducer = (selectedAccount = BTC_ACCOUNT, fees = DEFAULT_FEE
                             error: null,
                             isLoading: false,
                             lastTickerTimestamp: 169323560946000,
-                            lastSuccessfulFetchTimestamp: 1693235609465,
                             rate: 1,
                             ticker: {
                                 symbol: 'eth',
@@ -249,7 +247,6 @@ export const getRootReducer = (selectedAccount = BTC_ACCOUNT, fees = DEFAULT_FEE
                             error: null,
                             isLoading: false,
                             lastTickerTimestamp: 1693235609467000,
-                            lastSuccessfulFetchTimestamp: 1693235609467,
                             rate: 1,
                             ticker: {
                                 symbol: 'xrp',
@@ -261,7 +258,6 @@ export const getRootReducer = (selectedAccount = BTC_ACCOUNT, fees = DEFAULT_FEE
                             error: null,
                             isLoading: false,
                             lastTickerTimestamp: 1693235707743000,
-                            lastSuccessfulFetchTimestamp: 1693235707743,
                             rate: 1,
                             ticker: {
                                 symbol: 'btc',
@@ -271,7 +267,6 @@ export const getRootReducer = (selectedAccount = BTC_ACCOUNT, fees = DEFAULT_FEE
                             error: null,
                             isLoading: false,
                             lastTickerTimestamp: 1693235709465000,
-                            lastSuccessfulFetchTimestamp: 1693235709465,
                             rate: 1,
                             ticker: {
                                 symbol: 'eth',

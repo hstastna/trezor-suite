@@ -2,7 +2,7 @@ import { isAnyOf } from '@reduxjs/toolkit';
 
 import { isNative } from '@trezor/env-utils';
 import { createMiddlewareWithExtraDeps } from '@suite-common/redux-utils';
-import { Timestamp, TokenAddress } from '@suite-common/wallet-types';
+import { TokenAddress } from '@suite-common/wallet-types';
 
 import {
     fetchFiatRatesThunk,
@@ -96,7 +96,6 @@ export const prepareFiatRatesMiddleware = createMiddlewareWithExtraDeps(
                         },
                         rateType: 'current',
                         localCurrency,
-                        lastSuccessfulFetchTimestamp: Date.now() as Timestamp,
                     }),
                 );
             });

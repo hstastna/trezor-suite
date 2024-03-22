@@ -9,7 +9,7 @@ import { Output } from 'src/types/wallet/sendForm';
 import { useDispatch, useSelector } from 'src/hooks/suite';
 import { selectCoinDefinitions, updateFiatRatesThunk } from '@suite-common/wallet-core';
 import BigNumber from 'bignumber.js';
-import { Timestamp, TokenAddress, TokenDefinitions } from '@suite-common/wallet-types';
+import { TokenAddress, TokenDefinitions } from '@suite-common/wallet-types';
 import { TooltipSymbol, Translation } from 'src/components/suite';
 import { NetworkSymbol, getNetworkFeatures } from '@suite-common/wallet-config';
 import { enhanceTokensWithRates, sortTokensWithRates } from 'src/utils/wallet/tokenUtils';
@@ -237,7 +237,6 @@ export const TokenSelect = ({ output, outputId }: TokenSelectProps) => {
                                 },
                                 localCurrency: fiatCurrency?.value as FiatCurrencyCode,
                                 rateType: 'current',
-                                lastSuccessfulFetchTimestamp: Date.now() as Timestamp,
                             }),
                         );
                         // clear errors in Amount input

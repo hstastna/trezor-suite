@@ -4,7 +4,7 @@ import { Dispatch } from 'src/types/suite';
 import * as accountUtils from '@suite-common/wallet-utils';
 import { notificationsActions } from '@suite-common/toast-notifications';
 import { accountsActions, updateFiatRatesThunk } from '@suite-common/wallet-core';
-import { Timestamp, TokenAddress } from '@suite-common/wallet-types';
+import { TokenAddress } from '@suite-common/wallet-types';
 import { FiatCurrencyCode } from '@suite-common/suite-config';
 
 export const addToken =
@@ -25,7 +25,6 @@ export const addToken =
                 },
                 localCurrency,
                 rateType: 'current',
-                lastSuccessfulFetchTimestamp: Date.now() as Timestamp,
                 forceFetchToken: true,
             }),
         );

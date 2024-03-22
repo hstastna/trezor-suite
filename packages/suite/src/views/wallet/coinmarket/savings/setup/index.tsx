@@ -18,7 +18,6 @@ import { useEffect } from 'react';
 import { updateFiatRatesThunk } from '@suite-common/wallet-core';
 import { FiatCurrencyCode } from '@suite-common/suite-config';
 import { useDispatch } from 'src/hooks/suite';
-import { Timestamp } from '@suite-common/wallet-types';
 
 const Header = styled.div`
     font-weight: 500;
@@ -131,7 +130,6 @@ const CoinmarketSavingsSetup = (props: WithSelectedAccountLoadedProps) => {
                     },
                     localCurrency: fiatCurrency?.toLowerCase() as FiatCurrencyCode,
                     rateType: 'current',
-                    lastSuccessfulFetchTimestamp: Date.now() as Timestamp,
                 }),
             );
         };

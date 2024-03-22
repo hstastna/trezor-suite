@@ -4,7 +4,7 @@ import { useCoinmarketExchangeFormContext } from 'src/hooks/wallet/useCoinmarket
 import { FIAT_CURRENCY } from 'src/types/wallet/coinmarketExchangeForm';
 import { buildCurrencyOptions } from '@suite-common/wallet-utils';
 import { updateFiatRatesThunk } from '@suite-common/wallet-core';
-import { Timestamp, TokenAddress } from '@suite-common/wallet-types';
+import { TokenAddress } from '@suite-common/wallet-types';
 import { NetworkSymbol } from '@suite-common/wallet-config';
 import { useDispatch } from 'src/hooks/suite';
 import { FiatCurrencyCode } from '@suite-common/suite-config';
@@ -36,7 +36,6 @@ const FiatSelect = () => {
                                 },
                                 localCurrency: selected.value as FiatCurrencyCode,
                                 rateType: 'current',
-                                lastSuccessfulFetchTimestamp: Date.now() as Timestamp,
                             }),
                         );
                         if (updateFiatRatesResult.meta.requestStatus === 'fulfilled') {
