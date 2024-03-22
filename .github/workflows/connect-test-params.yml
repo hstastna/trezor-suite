@@ -47,7 +47,7 @@ jobs:
   web:
     name: web
     runs-on: ubuntu-latest
-    if: contains(inputs.tests-environment, 'web')
+    if: contains(fromJson('["node", "web", "both"]'), inputs.tests-environment)
     steps:
       - uses: actions/checkout@v4
         with:

@@ -332,7 +332,7 @@ jobs:
       tests-firmware: "2-latest"
       test-firmware-model: "R"
       tests-environment: ${{ matrix.environment }}
-     strategy:
+    strategy:
       fail-fast: false
       matrix:
         include:
@@ -365,6 +365,7 @@ jobs:
           - pattern: "methods"
             environment: ["node"]
             methods: "binanceGetAddress,binanceGetPublicKey,binanceSignTransaction"
+
     # strategy:
     #   matrix:
     #     pattern: ["authenticateDevice", "methods"]
@@ -381,4 +382,4 @@ jobs:
     #         "tezosGetAddress,tezosGetPublicKey,tezosSignTransaction",
     #         "binanceGetAddress,binanceGetPublicKey,binanceSignTransaction",
     #       ]
-      # fail-fast: false
+    # fail-fast: false
