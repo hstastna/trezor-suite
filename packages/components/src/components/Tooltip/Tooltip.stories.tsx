@@ -54,7 +54,7 @@ const meta: Meta = {
 } as Meta;
 export default meta;
 
-export const Component = (args: TooltipProps) => {
+const TooltipWrapper = (args: TooltipProps) => {
     const [open, setOpen] = useState(false);
 
     return (
@@ -84,7 +84,7 @@ export const Component = (args: TooltipProps) => {
 };
 
 export const Tooltip: StoryObj<TooltipProps> = {
-    render: args => <Component {...args} />,
+    render: args => <TooltipWrapper {...args} />,
     args: {
         content: 'Passphrase is an optional feature',
         offset: 10,
