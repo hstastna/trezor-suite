@@ -20,11 +20,16 @@ on:
         type: "string"
         required: false
         default: ""
+      tests-environment:
+        description: "Test environments for the tests (examples: ['node'], ['web'], ['node', 'web'])"
+        type: "string[]"
+        required: true
 
 jobs:
   node:
     name: node
     runs-on: ubuntu-latest
+    if: contains(inputs.tests-environment, 'node')
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,6 +47,7 @@ jobs:
   web:
     name: web
     runs-on: ubuntu-latest
+    if: contains(inputs.tests-environment, 'web')
     steps:
       - uses: actions/checkout@v4
         with:

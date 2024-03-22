@@ -65,6 +65,7 @@ jobs:
     uses: ./.github/workflows/connect-test-params.yml
     with:
       test-pattern: "init authorizeCoinjoin cancelCoinjoinAuthorization passphrase unlockPath setBusy override checkFirmwareAuthenticity"
+      tests-environment: ["node", "web"]
 
   legacy-canary-firmware-api:
     needs: [build]
@@ -73,6 +74,7 @@ jobs:
     with:
       test-pattern: "init authorizeCoinjoin cancelCoinjoinAuthorization passphrase unlockPath setBusy override checkFirmwareAuthenticity"
       tests-firmware: ${{ matrix.firmware }}
+      tests-environment: ["node", "web"]
     strategy:
       matrix:
         firmware: ["2.2.0", "2-main"]
@@ -84,6 +86,7 @@ jobs:
     with:
       test-pattern: methods
       methods: "applySettings,applyFlags,getFeatures,getFirmwareHash"
+      tests-environment: ["node", "web"]
 
   legacy-canary-firmware-management:
     needs: [build]
@@ -93,6 +96,7 @@ jobs:
       test-pattern: methods
       methods: "applySettings,applyFlags,getFeatures,getFirmwareHash"
       tests-firmware: ${{ matrix.firmware }}
+      tests-environment: ["node", "web"]
     strategy:
       matrix:
         firmware: ["2.2.0", "2-main"]
@@ -104,6 +108,7 @@ jobs:
     with:
       test-pattern: methods
       methods: "signTransaction"
+      tests-environment: ["node", "web"]
 
   legacy-canary-firmware-btc-sign:
     needs: [build]
@@ -113,6 +118,7 @@ jobs:
       test-pattern: methods
       methods: "signTransaction"
       tests-firmware: ${{ matrix.firmware }}
+      tests-environment: ["node", "web"]
     strategy:
       matrix:
         firmware: ["2.2.0", "2-main"]
@@ -124,6 +130,7 @@ jobs:
     with:
       test-pattern: methods
       methods: "getAccountInfo,getAccountDescriptor,getAddress,getPublicKey,signMessage,verifyMessage,composeTransaction,getOwnershipId,getOwnershipProof"
+      tests-environment: ["node", "web"]
 
   legacy-canary-firmware-btc-others:
     needs: [build]
@@ -133,6 +140,7 @@ jobs:
       test-pattern: methods
       methods: "getAccountInfo,getAccountDescriptor,getAddress,getPublicKey,signMessage,verifyMessage,composeTransaction,getOwnershipId,getOwnershipProof"
       tests-firmware: ${{ matrix.firmware }}
+      tests-environment: ["node", "web"]
     strategy:
       matrix:
         firmware: ["2.2.0", "2-main"]
@@ -144,6 +152,7 @@ jobs:
     with:
       test-pattern: methods
       methods: "stellarGetAddress,stellarSignTransaction"
+      tests-environment: ["node", "web"]
 
   legacy-canary-firmware-stellar:
     needs: [build]
@@ -153,6 +162,7 @@ jobs:
       test-pattern: methods
       methods: "stellarGetAddress,stellarSignTransaction"
       tests-firmware: ${{ matrix.firmware }}
+      tests-environment: ["node", "web"]
     strategy:
       matrix:
         firmware: ["2.2.0", "2-main"]
@@ -164,6 +174,7 @@ jobs:
     with:
       test-pattern: methods
       methods: "cardanoGetAddress,cardanoGetNativeScriptHash,cardanoGetPublicKey,cardanoSignTransaction"
+      tests-environment: ["node", "web"]
 
   legacy-canary-firmware-cardano:
     needs: [build]
@@ -173,6 +184,7 @@ jobs:
       test-pattern: methods
       methods: "cardanoGetAddress,cardanoGetNativeScriptHash,cardanoGetPublicKey,cardanoSignTransaction"
       tests-firmware: ${{ matrix.firmware }}
+      tests-environment: ["node", "web"]
     strategy:
       matrix:
         firmware: ["2.2.0", "2-main"]
@@ -184,6 +196,7 @@ jobs:
     with:
       test-pattern: methods
       methods: "eosGetPublicKey,eosSignTransaction"
+      tests-environment: ["node", "web"]
 
   legacy-canary-firmware-eos:
     needs: [build]
@@ -193,6 +206,7 @@ jobs:
       test-pattern: methods
       methods: "eosGetPublicKey,eosSignTransaction"
       tests-firmware: ${{ matrix.firmware }}
+      tests-environment: ["node", "web"]
     strategy:
       matrix:
         firmware: ["2.2.0", "2-main"]
@@ -204,6 +218,7 @@ jobs:
     with:
       test-pattern: methods
       methods: "ethereumGetAddress,ethereumGetPublicKey,ethereumSignMessage,ethereumSignTransaction,ethereumVerifyMessage,ethereumSignTypedData"
+      tests-environment: ["node", "web"]
 
   legacy-canary-firmware-ethereum:
     needs: [build]
@@ -213,6 +228,7 @@ jobs:
       test-pattern: methods
       methods: "ethereumGetAddress,ethereumGetPublicKey,ethereumSignMessage,ethereumSignTransaction,ethereumVerifyMessage,ethereumSignTypedData"
       tests-firmware: ${{ matrix.firmware }}
+      tests-environment: ["node", "web"]
     strategy:
       matrix:
         firmware: ["2.2.0", "2-main"]
@@ -224,6 +240,7 @@ jobs:
     with:
       test-pattern: methods
       methods: "nemGetAddress,nemSignTransaction"
+      tests-environment: ["node", "web"]
 
   legacy-canary-firmware-nem:
     needs: [build]
@@ -233,6 +250,7 @@ jobs:
       test-pattern: methods
       methods: "nemGetAddress,nemSignTransaction"
       tests-firmware: ${{ matrix.firmware }}
+      tests-environment: ["node", "web"]
     strategy:
       matrix:
         firmware: ["2.2.0", "2-main"]
@@ -244,6 +262,7 @@ jobs:
     with:
       test-pattern: methods
       methods: "rippleGetAddress,rippleSignTransaction"
+      tests-environment: ["node", "web"]
 
   legacy-canary-firmware-ripple:
     needs: [build]
@@ -253,6 +272,7 @@ jobs:
       test-pattern: methods
       methods: "rippleGetAddress,rippleSignTransaction"
       tests-firmware: ${{ matrix.firmware }}
+      tests-environment: ["node", "web"]
     strategy:
       matrix:
         firmware: ["2.2.0", "2-main"]
@@ -264,6 +284,7 @@ jobs:
     with:
       test-pattern: methods
       methods: "tezosGetAddress,tezosGetPublicKey,tezosSignTransaction"
+      tests-environment: ["node", "web"]
 
   legacy-canary-firmware-tezos:
     needs: [build]
@@ -273,6 +294,7 @@ jobs:
       test-pattern: methods
       methods: "tezosGetAddress,tezosGetPublicKey,tezosSignTransaction"
       tests-firmware: ${{ matrix.firmware }}
+      tests-environment: ["node", "web"]
     strategy:
       matrix:
         firmware: ["2.2.0", "2-main"]
@@ -284,6 +306,7 @@ jobs:
     with:
       test-pattern: methods
       methods: "binanceGetAddress,binanceGetPublicKey,binanceSignTransaction"
+      tests-environment: ["node", "web"]
 
   legacy-canary-firmware-binance:
     needs: [build]
@@ -293,6 +316,7 @@ jobs:
       test-pattern: methods
       methods: "binanceGetAddress,binanceGetPublicKey,binanceSignTransaction"
       tests-firmware: ${{ matrix.firmware }}
+      tests-environment: ["node", "web"]
     strategy:
       matrix:
         firmware: ["2.2.0", "2-main"]
@@ -307,20 +331,54 @@ jobs:
       methods: ${{ matrix.pattern }}
       tests-firmware: "2-latest"
       test-firmware-model: "R"
-    strategy:
-      matrix:
-        pattern: ["authenticateDevice", "methods"]
-        methods: [
-            "applySettings,applyFlags,getFirmwareHash", # getFeatures (capabilities)
-            # "signTransaction", (unsupported chain in fixtures)
-            "getAccountInfo,getAccountDescriptor,getPublicKey,signMessage,verifyMessage,composeTransaction,getOwnershipId,getOwnershipProof", # getAddress (unsupported chain in fixtures)
-            "stellarGetAddress,stellarSignTransaction",
-            "cardanoGetAddress,cardanoGetNativeScriptHash,cardanoGetPublicKey,cardanoSignTransaction",
-            # eos not supported
-            "ethereumGetAddress,ethereumGetPublicKey,ethereumSignMessage,ethereumSignTransaction,ethereumVerifyMessage,ethereumSignTypedData",
-            # nem not supported
-            "rippleGetAddress,rippleSignTransaction",
-            "tezosGetAddress,tezosGetPublicKey,tezosSignTransaction",
-            "binanceGetAddress,binanceGetPublicKey,binanceSignTransaction",
-          ]
+      tests-environment: ${{ matrix.environment }}
+     strategy:
       fail-fast: false
+      matrix:
+        include:
+          - pattern: "authenticateDevice"
+            environment: ["node", "web"]
+            methods: ""
+          - pattern: "methods"
+            environment: ["node"]
+            methods: "applySettings,applyFlags,getFirmwareHash"
+          # "signTransaction", (unsupported chain in fixtures)
+          - pattern: "methods"
+            environment: ["node"]
+            methods: "getAccountInfo,getAccountDescriptor,getPublicKey,signMessage,verifyMessage,composeTransaction,getOwnershipId,getOwnershipProof"
+          - pattern: "methods"
+            environment: ["node"]
+            methods: "stellarGetAddress,stellarSignTransaction"
+          - pattern: "methods"
+            environment: ["node"]
+            methods: "cardanoGetAddress,cardanoGetNativeScriptHash,cardanoGetPublicKey,cardanoSignTransaction"
+          # eos not supported
+          - pattern: "methods"
+            environment: ["node"]
+            methods: "ethereumGetAddress,ethereumGetPublicKey,ethereumSignMessage,ethereumSignTransaction,ethereumVerifyMessage,ethereumSignTypedData"
+          - pattern: "methods"
+            environment: ["node"]
+            methods: "rippleGetAddress,rippleSignTransaction"
+          - pattern: "methods"
+            environment: ["node"]
+            methods: "tezosGetAddress,tezosGetPublicKey,tezosSignTransaction"
+          - pattern: "methods"
+            environment: ["node"]
+            methods: "binanceGetAddress,binanceGetPublicKey,binanceSignTransaction"
+    # strategy:
+    #   matrix:
+    #     pattern: ["authenticateDevice", "methods"]
+    #     methods: [
+    #         "applySettings,applyFlags,getFirmwareHash", # getFeatures (capabilities)
+    #         # "signTransaction", (unsupported chain in fixtures)
+    #         "getAccountInfo,getAccountDescriptor,getPublicKey,signMessage,verifyMessage,composeTransaction,getOwnershipId,getOwnershipProof", # getAddress (unsupported chain in fixtures)
+    #         "stellar# eos not supportedGetAddress,stellarSignTransaction",
+    #         "cardanoGetAddress,cardanoGetNativeScriptHash,cardanoGetPublicKey,cardanoSignTransaction",
+    #
+    #         "ethereumGetAddress,ethereumGetPublicKey,ethereumSignMessage,ethereumSignTransaction,ethereumVerifyMessage,ethereumSignTypedData",
+    #         # nem not supported
+    #         "rippleGetAddress,rippleSignTransaction",
+    #         "tezosGetAddress,tezosGetPublicKey,tezosSignTransaction",
+    #         "binanceGetAddress,binanceGetPublicKey,binanceSignTransaction",
+    #       ]
+      # fail-fast: false
