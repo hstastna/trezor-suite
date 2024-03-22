@@ -120,7 +120,7 @@ export const Tooltip = ({
             <FloatingDelayGroup delay={{ open: delayShow, close: delayHide }}>
                 <TooltipFloatingUi
                     placement={placement}
-                    open={isOpenState}
+                    isOpen={isOpenState}
                     onOpenChange={isControlled ? undefined : handleOnOpenChange}
                     offset={offset}
                 >

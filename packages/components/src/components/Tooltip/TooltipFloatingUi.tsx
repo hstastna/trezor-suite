@@ -40,9 +40,9 @@ import {
 type ArrowRef = RefObject<SVGSVGElement>;
 
 interface TooltipOptions {
-    initialOpen?: boolean;
+    isInitiallyOpen?: boolean;
     placement?: Placement;
-    open?: boolean;
+    isOpen?: boolean;
     onOpenChange?: (open: boolean) => void;
     offset?: number;
 }
@@ -54,16 +54,16 @@ type UseTooltipReturn = ReturnType<typeof useInteractions> & {
 } & UseFloatingReturn;
 
 export const useTooltip = ({
-    initialOpen = false,
+    isInitiallyOpen = false,
     placement = 'top',
-    open: controlledOpen,
+    isOpen: isControlledOpen,
     onOpenChange: setControlledOpen,
     offset: offsetValue = 10,
 }: TooltipOptions = {}): UseTooltipReturn => {
     const arrowRef = useRef<SVGSVGElement>(null);
-    const [uncontrolledOpen, setUncontrolledOpen] = useState(initialOpen);
+    const [uncontrolledOpen, setUncontrolledOpen] = useState(isInitiallyOpen);
 
-    const open = controlledOpen ?? uncontrolledOpen;
+    const open = isControlledOpen ?? uncontrolledOpen;
     const setOpen = setControlledOpen ?? setUncontrolledOpen;
 
     const { delay } = useDelayGroupContext();
@@ -80,11 +80,11 @@ export const useTooltip = ({
 
     const hover = useHover(context, {
         move: false,
-        enabled: controlledOpen == null,
+        enabled: isControlledOpen == null,
         delay,
     });
     const focus = useFocus(context, {
-        enabled: controlledOpen == null,
+        enabled: isControlledOpen == null,
     });
     const dismiss = useDismiss(context);
     const role = useRole(context, { role: 'tooltip' });
