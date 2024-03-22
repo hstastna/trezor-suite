@@ -197,7 +197,7 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version-file: '.nvmrc'
-            - name: Run e2e migration tests
+            - name: Run e2e canary fw tests
               env:
                   COMPOSE_FILE: ./docker/docker-compose.suite-ci.yml
                   ## Tells Cypress where is the index of application
@@ -216,7 +216,7 @@ jobs:
                   CYPRESS_TEST_URLS: develop
                   CYPRESS_USE_TREZOR_USER_ENV_BRIDGE: 1
                   CYPRESS_updateSnapshots: 0
-                  FIRMWARE: 2-main
+                  FIRMWARE: 2-maslkdfjghin
               run: |
                   yarn install --immutable
                   docker-compose pull
